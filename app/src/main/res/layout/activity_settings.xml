@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.AppCompat"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+<fragment
+    android:id="@+id/settings_activity"
+    android:name="spiral.bit.dev.sunshinenotes.SettingsFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

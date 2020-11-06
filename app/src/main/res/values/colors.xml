@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#f2f2f2</color>
+    <color name="colorPrimaryDark">#f2f2f2</color>
+    <color name="colorAccent">#FDBE3B</color>
+    <color name="colorWhite">#292929</color>
+    <color name="colorSearchIcon">#333333</color>
+    <color name="colorTextHint">#7B7B7B</color>
+    <color name="colorQuickActionsBackground">#E5E5E5</color>
+    <color name="colorIcons">#2F2D2E</color>
+    <color name="colorTextSubTitle">#CECECE</color>
+    <color name="defaultNoteColor">#333333</color>
+    <color name="colorNoteSubTitleText">#FAFAFA</color>
+    <color name="colorMiscellaneousBackground">#CCCCCC</color>
+    <color name="colorNoteColor2">#FDBE3B</color>
+    <color name="colorNoteColor3">#FF4842</color>
+    <color name="colorNoteColor4">#3A52FC</color>
+    <color name="colorNoteColor5">#000000</color>
+    <color name="colorDelete">#FF4842</color>
+    <color name="colorSearchBackground">#E5E5E5</color>
+    <color name="gradient_start_color">#4C84FF</color>
+    <color name="gradient_end_color">#18A3fE</color>
+    <color name="tab_indicator_gray">#C0C0C0</color>
+    <color name="intro_title">#000000</color>
+    <color name="intro_description_color">#656565</color>
+    <color name="colorAccentTheme">#292A2C</color>
+    <color name="moonColor">#BDD0E4</color>
+    <color name="correct_pin_color">#71BB4D</color>
+    <color name="number_pin_color">#222222</color>
+    <color name="wrong_pin_color">#EA2B46</color>
+    <color name="light_green">#00FF00</color>
+    <color name="purple">#551A8B</color>
+    <color name="dark_green">#006400</color>
+    <color name="light_gray">#D3D3D3</color>
+    <color name="cyan">#00FFFF</color>
+    <color name="orange">#FFA500</color>
+</resources>

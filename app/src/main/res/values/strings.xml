@@ -1,0 +1,206 @@
+<resources>
+
+    //ADS
+
+
+    <!--    <string name="google_play_license" translatable="false">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwsWgfleWZkA10T0vBfjVZ2Nzr8Yp7SKMLzhqq8CKCUcy/IYVdlKf31jT3IzO4tqLYnovStMTOEK3LCHBlJZSzdhKN4dqCjtap6+8MsE9gx4U3fvb+cccxZIIJpK5HM3DbXmuPNqneBEfSy1yVtEAt2KBAfZAOX7hajpmvnNnaGuKapz2eCJNOobuV7goKngWP/QYmYoOW5Hg+et7qwOrd6ZlkMixnbgXs5wjrqTItxrjwcdMPWnDzawSRpcT/ELGNy4p5KUw2HLVUuMdVwXsDg73Udyhx3a0ddO/as9wdG4EJ0uo0J2jsaSe1iFNRjyIyGKM6Cd2WH8oMqp/qzUZPQIDAQAB</string>-->
+    <!--    <string name="product_id" translatable="false">unical_key_for_sunshine_app_spiral</string>-->
+    <!--    <string name="admob_banner_id" translatable="false">ca-app-pub-7780453585001831/5798151852</string>-->
+    <!--    <string name="admob_create_note_banner_id" translatable="false">ca-app-pub-7780453585001831/5943896594</string>-->
+    <!--    <string name="admob_interstitial_id" translatable="false">ca-app-pub-7780453585001831/5877256488</string>-->
+    <!--    <string name="admob_app_id" translatable="false">ca-app-pub-7780453585001831~8275113711</string>-->
+
+    <string name="google_play_license" translatable="false">787</string>
+    <string name="product_id" translatable="false">android.test.purchased</string>
+    <string name="admob_banner_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="admob_banner_folder_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="admob_create_note_banner_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="admob_interstitial_id" translatable="false">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
+
+    //OTHER
+
+    <string name="not_open_playstore">Не найдено приложение Google Play</string>
+    <string name="settings_other_summary">Другое</string>
+    <string name="settings_other">Оценить</string>
+    <string name="settings_rate_summary">Поставьте оценку и отзыв о приложении</string>
+    <string name="settings_rate">Оцените приложение</string>
+    <string name="settings_billing_summary">Управление покупками</string>
+    <string name="settings_billing">Покупки в приложении</string>
+    <string name="settings_purchase_summary">Отключение рекламы в приложении</string>
+    <string name="settings_purchase">Отключение рекламы</string>
+    <string name="settings_restore_purchase_success">Покупка восстановлена</string>
+    <string name="settings_purchase_success">Благодарю за покупку :) \nДля отключения рекламы перезапустите приложение!</string>
+    <string name="settings_purchase_fail">Ошибка покупки</string>
+
+    //cd's//
+    <string name="cd_icon_search">SEARCH ICON</string>
+    <string name="cd_add_note_icon">ADD NOTE ICON</string>
+    <string name="cd_add_image_icon">ADD IMAGE ICON</string>
+    <string name="cd_icon_add_btn">ICON ADD BTN</string>
+    <string name="cd_icon_image_back">IMAGE BACK ICON</string>
+    <string name="cd_icon_save">ICON SAVE</string>
+    <string name="cd_image_icon">IMAGE ICON</string>
+    <string name="cd_add_img_icon">ADD IMAGE ICON</string>
+    <string name="cd_image_color_1">IMAGE COLOR 1</string>
+    <string name="cd_add_url_icon">ADD URL ICON</string>
+    <string name="cd_icon_remove">ICON REMOVE (DELETE)</string>
+    <string name="cd_icon_delete_image">ICON DELETE IMAGE</string>
+    <string name="cd_icon_delete_note">ICON DELETE NOTE</string>
+
+    <string name="app_name">Sunshine Notes</string>
+    <string name="my_notes_label">Мои Заметки</string>
+    <string name="search_hint_search_et">Поиск по заметкам…</string>
+    <string name="enter_title_of_note">Введите заголовок заметки…</string>
+    <string name="enter_note_subtitle_hint">Подзаголовок…</string>
+    <string name="type_note_here_hint">Пишите здесь…</string>
+    <string name="toast_error_title_empty">Введите заголовок заметки!</string>
+    <string name="toast_error_empty_note">Заметка не может быть пустой!</string>
+    <string name="pick_color_label">Выберите цвет</string>
+    <string name="add_img_label">Добавить изображение</string>
+    <string name="error_toast_perm_denied">В доступе к хранилищу отказано :(</string>
+    <string name="error_add_img_toast">Ой, картинку не получается добавить :(</string>
+    <string name="add_ref_label">Добавить ссылку</string>
+    <string name="enter_ref_hint">Введите ссылку…</string>
+    <string name="add_label">Добавить</string>
+    <string name="cancel_label">Отменить</string>
+    <string name="error_toast_ref_empty">Ссылка не может быть пустой!</string>
+    <string name="error_toast_not_valid_ref">Введите валидную ссылку!</string>
+    <string name="delete_note_label">Удалить заметку</string>
+    <string name="are_you_sure_delete_note_message">Вы уверены в том, что хотите удалить эту заметку?</string>
+    <string name="not_found_label">Ничего не найдено.\n Попробовать ещё раз ?</string>
+    <string name="add_voice_record_label">Добавить запись голоса</string>
+    <string name="record_voice_label">Запись голоса</string>
+    <string name="get_started_label">НАЧАТЬ</string>
+    <string name="promo_title_1">Поиск</string>
+    <string name="promo_title_2">Создание заметки</string>
+    <string name="promo_title_3">Комфортное меню</string>
+    <string name="promo_title_4">Меню быстрых действий</string>
+    <string name="promo_description_1">Простой поиск по уже созданным заметкам и понятный интерфейс.</string>
+    <string name="promo_description_2">Создавайте заметки просто, быстро и удобно.</string>
+    <string name="promo_description_3">Выбирайте заметке цвет, добавляйте изображения и ссылки в 2 клика.</string>
+    <string name="promo_description_4">В неудобных ситуациях быстро добавляйте заметку, ссылку или изображение.</string>
+    <string name="cd_settings_icon">PIN CODE ICON</string>
+    <string name="pin_code_success">Пин-код верный.</string>
+    <string name="pin_code_failure">Пин-код неверный.</string>
+    <string name="enter_pin_code">Введите пин-код из 5 цифр.</string>
+    <string name="re_enter_pin_code">Введите пин-код повторно</string>
+    <string name="sure_go">Всё равно перейти</string>
+    <string name="next_label">Далее</string>
+    <string name="exit_app_label">Вы вышли не сохранив заметку.</string>
+    <string name="save_note_label">Сохранить заметку</string>
+    <string name="exit_dialog_save_label">Сохранить последнюю несохранённую заметку?</string>
+    <string name="forget_password_label">Забыл пин-код</string>
+    <string name="set_pin_code_label">Установка пин-кода</string>
+    <string name="label_forget_pass">Добавьте секретное слово.\n Если вы забудете пин-код, \n это поможет вам открыть приложение</string>
+    <string name="enter_secret_word_label">Введите секретное слово</string>
+    <string name="cancel_dont_care">Отменить, \nя не забуду пин-код</string>
+    <string name="secret_word_added_toast">Секретное слово добавлено!</string>
+    <string name="forget_pin_code">Забыли пин-код?</string>
+    <string name="label_enter_secret_word">Введите секретное слово</string>
+    <string name="enter_label">Подтвердите</string>
+    <string name="info_about_note_label">Информация о заметке</string>
+    <string name="close_label">Закрыть</string>
+    <string name="date_note_created_label">Дата создания заметки:</string>
+    <string name="date_edit_label">Дата редактирования не задана</string>
+    <string name="are_you_sure_label">Вы хотите установить новый\n пин-код?</string>
+    <string name="yes_label">Да</string>
+    <string name="if_pin_code_set_yet">Если у вас уже был установлен пин-код,\n он будет заменён на новый.</string>
+    <string name="add_remind_label">Поставить напоминание</string>
+    <string name="remove_pin_code_label">Снятие пин-кода</string>
+    <string name="are_you_sure_remove_pin_code_label">Вы точно хотите снять свой пин-код?</string>
+    <string name="remove_pin_label">Снять пин-код</string>
+    <string name="pin_successfully_removed">Пин-код успешно снят!</string>
+    <string name="set_remind_label">Установить</string>
+    <string name="read_mode_enabled_toast">Режим чтения включен!</string>
+    <string name="remember_my_choice_label">Запомнить мой выбор</string>
+    <string name="time_to_do_complete_label">Пора приступать к выполнению:</string>
+    <string name="ticker_label">SUNSHINE NOTES</string>
+    <string name="notification_label">Уведомления</string>
+    <string name="sound_enabled">Звук включен</string>
+    <string name="sound_disabled">Звук выключен</string>
+    <string name="info_img_error_toast">Нельзя просмотреть информацию\n о несозданной заметке!</string>
+    <string name="set_password_label">Установка пароля</string>
+    <string name="password_add_label">Придумайте пароль…</string>
+    <string name="password_set_up">Пароль установлен!</string>
+    <string name="password_enter_label">Введите пароль…</string>
+    <string name="password_wrong">Пароль неверный!</string>
+    <string name="create_lock_pattern_label">Создайте графический ключ</string>
+    <string name="submit_label">Подтвердить</string>
+    <string name="enter_graphic_key">Введите графический ключ</string>
+    <string name="type_of_lock_label">Какой тип блокировки вы хотите поставить?</string>
+    <string name="graphic_key_label">Графический ключ</string>
+    <string name="pin_code_label">Пин-код</string>
+    <string name="password_label">Пароль</string>
+    <string name="password_desc_label">Лучше всего придумать пароль, который включает в себя заглавные буквы, латиницу, цифры и символы, а длина которого будет более 8 символов.</string>
+    <string name="add_draw_label">Добавить рисунок</string>
+    <string name="save_label">СОХРАНИТЬ</string>
+    <string name="big_size_label">Большой размер</string>
+    <string name="medium_size_label">Средний размер</string>
+    <string name="small_size_label">Маленький размер</string>
+    <string name="def_size_label">Размер кисти по-умолчанию</string>
+    <string name="graphic_key_not_right">Графический ключ неверный.</string>
+    <string name="enter_your_password">Введите ваш пароль</string>
+    <string name="password_isnt_right">Пароль неверный!</string>
+    <string name="hint_pass">Введите пароль…</string>
+    <string name="remove_lock_label">Снять блокировку</string>
+    <string name="lock_removed_toast">Блокировка снята!</string>
+    <string name="now_not_notes_label">Сейчас здесь нет заметок</string>
+    <string name="hint_label">Нажмите на кнопку справа внизу,\n чтобы добавить одну</string>
+    <string name="enabled">Включено</string>
+    <string name="disabled">Выключено</string>
+    <string name="toasts_label">Всплывающие сообщения</string>
+    <string name="show_label">Отображать</string>
+    <string name="not_show_label">Не отображать</string>
+    <string name="saved">Сохранено!</string>
+    <string name="set">Графический ключ \n установлен!</string>
+    <string name="pin_code_isnt_right">Пин-код неверный.</string>
+    <string name="secret_word_isnt_right">Введённое секретное слово неверное!</string>
+    <string name="pin_code_set">Пин-код установлен!</string>
+    <string name="settings_label">Настройки</string>
+    <string name="settings_not_reset_label">Настройки не сброшены</string>
+    <string name="settings_reset_label">Настройки сброшены</string>
+    <string name="reset_settings_label">Сбросить все настройки</string>
+    <string name="save_note_on_exit_label">Сохранять заметку при выходе</string>
+    <string name="share_label">Поделиться</string>
+    <string name="error_toast">Нельзя поделиться несозданной заметкой!</string>
+    <string name="share_note_label">Поделиться заметкой</string>
+    <string name="label_how_share">Как вы хотите поделиться заметкой?</string>
+    <string name="with_draw_label">С рисунком</string>
+    <string name="with_image_label">С изображением</string>
+    <string name="only_text_label">Только текст</string>
+    <string name="no_draw_in_note_share_error">У вас нет рисунка в этой заметке!</string>
+    <string name="no_img_in_note_share_error">У вас нет картинки в этой заметке!</string>
+    <string name="def_style_label">Шрифт по-умолчанию</string>
+    <string name="comissioner_text_label">Comissioner</string>
+    <string name="roboto_style_label">Roboto</string>
+    <string name="sourcecode_style_label">Sourcecode</string>
+    <string name="preview_label">Предпросмотр</string>
+    <string name="text_size_label">Размер текста</string>
+    <string name="def_color_label">Цвет по-умолчанию</string>
+    <string name="yellow_color_label">Желтый</string>
+    <string name="green_color_label">Зелёный</string>
+    <string name="red_color_label">Красный</string>
+    <string name="def_text_size_label">Размер по-умолчанию</string>
+    <string name="small_text_size_label">Маленький</string>
+    <string name="medium_text_size_label">Средний</string>
+    <string name="big_text_size_label">Большой</string>
+    <string name="font_label">Шрифт</string>
+    <string name="text_color_label">Цвет текста</string>
+    <string name="add_voice_enter">Голосовой ввод</string>
+    <string name="add_voice_speak_label">Привет! Начни говорить для того, чтобы написать заметку!</string>
+    <string name="toast_error_record_denied">Без разрешения на запись вы\n не сможете использовать\n голосовой ввод :(</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="my_folders_label">Мои папки</string>
+    <string name="search_on_folders">Поиск по папкам...</string>
+    <string name="now_not_folders_there_label">Сейчас здесь нет папок</string>
+    <string name="this_note_not_has_been_edited">Эта заметка не была редактирована</string>
+    <string name="notes">Заметки</string>
+    <string name="folders">Папки</string>
+    <string name="trash">Корзина</string>
+    <string name="enter_title_of_list">Введите заголовок списка...</string>
+    <string name="dark_theme_label">Тёмная тема</string>
+    <string name="icon_music_cd">Icon music</string>
+    <string name="my_track_label">Выбрать из моей музыки</string>
+</resources>

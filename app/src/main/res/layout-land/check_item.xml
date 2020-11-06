@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout_folder"
+    android:layout_width="@dimen/_150sdp"
+    android:layout_height="@dimen/_150sdp"
+    android:layout_marginStart="@dimen/_12sdp"
+    android:layout_marginTop="@dimen/_12sdp"
+    android:background="@drawable/background_note"
+    android:orientation="vertical"
+    android:layout_marginLeft="@dimen/_12sdp">
+
+    <com.makeramen.roundedimageview.RoundedImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:visibility="gone"
+        app:riv_corner_radius_top_left="@dimen/_10sdp"
+        app:riv_corner_radius_top_right="@dimen/_10sdp"
+        android:id="@+id/image_folder" />
+
+    <com.makeramen.roundedimageview.RoundedImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:visibility="gone"
+        app:riv_corner_radius_top_left="@dimen/_10sdp"
+        app:riv_corner_radius_top_right="@dimen/_10sdp"
+        android:id="@+id/image_draw_note" />
+
+    <TextView
+        android:id="@+id/text_folder_title"
+        android:layout_width="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_8sdp"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:layout_marginEnd="@dimen/_8sdp"
+        android:fontFamily="@font/ubuntu_bold"
+        android:includeFontPadding="false"
+        android:textColor="@color/colorWhite"
+        android:textSize="@dimen/_13ssp" />
+
+    <ImageView
+        android:id="@+id/icon_add_folder_btn"
+        android:layout_width="@dimen/_80sdp"
+        android:layout_height="@dimen/_80sdp"
+        android:layout_marginStart="@dimen/_30sdp"
+        android:layout_marginLeft="@dimen/_30sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:background="@drawable/background_add_btn"
+        android:padding="@dimen/_5sdp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_note_add"
+        android:visibility="visible"
+        app:tint="@color/colorPrimary" />
+
+</LinearLayout>

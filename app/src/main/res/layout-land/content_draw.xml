@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/content_draw_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/save_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:text="@string/save_label"
+            android:textColor="@color/colorAccent"
+            android:textSize="@dimen/_15ssp" />
+
+        <ImageView
+            android:id="@+id/brush_btn"
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_marginStart="@dimen/_20sdp"
+            android:layout_marginLeft="@dimen/_25sdp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/brush"
+            android:background="@drawable/ripple_effect"
+            app:tint="@color/colorDelete" />
+
+        <ImageView
+            android:id="@+id/erase_btn"
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_marginStart="@dimen/_20sdp"
+            android:layout_marginLeft="@dimen/_20sdp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:src="@drawable/eraser"
+            android:background="@drawable/ripple_effect"
+            app:tint="@color/colorDelete" />
+
+        <ImageView
+            android:id="@+id/clear_all_canvas_btn"
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_marginStart="@dimen/_20sdp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:src="@drawable/ic_clear_all"
+            android:background="@drawable/ripple_effect"
+            android:layout_marginLeft="@dimen/_20sdp"
+            app:tint="@color/colorDelete" />
+
+        <ImageView
+            android:id="@+id/size_select_btn"
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_marginStart="@dimen/_20sdp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:src="@drawable/ic_size"
+            android:background="@drawable/ripple_effect"
+            android:layout_marginLeft="@dimen/_20sdp"
+            app:tint="@color/colorDelete" />
+
+    </LinearLayout>
+
+    <spiral.bit.dev.sunshinenotes.models.PaintView
+        android:id="@+id/drawing"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/white" />
+
+    <LinearLayout
+        android:id="@+id/paint_colors"
+        android:layout_width="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:layout_marginStart="20dp">
+
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:background="#FF660000"
+            android:onClick="paintClicked"
+            android:tag="#FF660000"
+            android:src="@drawable/edit_selector" />
+
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:background="#FFFF0000"
+            android:onClick="paintClicked"
+            android:src="@drawable/edit_selector"
+            android:tag="#FFFF0000" />
+
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:background="#FF6600"
+            android:onClick="paintClicked"
+            android:src="@drawable/edit_selector"
+            android:tag="#FF6600" />
+
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:background="#FFFFCC00"
+            android:onClick="paintClicked"
+            android:src="@drawable/edit_selector"
+            android:tag="#FFFFCC00" />
+
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:background="#FF009900"
+            android:onClick="paintClicked"
+            android:src="@drawable/edit_selector"
+            android:tag="#FF009900" />
+
+
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:background="#FF0000FF"
+            android:onClick="paintClicked"
+            android:src="@drawable/edit_selector"
+            android:tag="#FF0000FF" />
+
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:background="#FF6666"
+            android:onClick="paintClicked"
+            android:src="@drawable/edit_selector"
+            android:tag="#FF6666" />
+
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:background="#FFFFFF"
+            android:onClick="paintClicked"
+            android:src="@drawable/edit_selector"
+            android:tag="#FFFFFF" />
+
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="60dp"
+            android:layout_margin="2dp"
+            android:background="#FF787878"
+            android:onClick="paintClicked"
+            android:src="@drawable/edit_selector"
+            android:tag="#FF787878" />
+
+    </LinearLayout>
+
+</LinearLayout>

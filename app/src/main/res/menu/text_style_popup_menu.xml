@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/main_group">
+        <item
+            android:id="@+id/text_size"
+            android:icon="@drawable/ic_size"
+            android:title="@string/text_size_label">
+        <menu>
+            <group android:id="@+id/menugroup">
+                <item
+                    android:icon="@drawable/ic_size"
+                    android:id="@+id/size_def"
+                    android:title="@string/def_text_size_label" />
+                <item
+                    android:icon="@drawable/ic_size"
+                    android:id="@+id/size_small"
+                    android:title="@string/small_text_size_label" />
+                <item
+                    android:icon="@drawable/ic_size"
+                    android:id="@+id/size_medium"
+                    android:title="@string/medium_text_size_label" />
+                <item
+                    android:icon="@drawable/ic_size"
+                    android:id="@+id/size_big"
+                    android:title="@string/big_text_size_label" />
+            </group>
+        </menu>
+        </item>
+        <item
+            android:id="@+id/text_style"
+            android:icon="@drawable/ic_font"
+            android:title="@string/font_label">
+        <menu>
+            <group android:id="@+id/menugroup1">
+                <item
+                    android:icon="@drawable/ic_font"
+                    android:id="@+id/style_def"
+                    android:title="@string/def_style_label" />
+                <item
+                    android:icon="@drawable/ic_font"
+                    android:id="@+id/style_comissioner"
+                    android:title="@string/comissioner_text_label" />
+                <item
+                    android:icon="@drawable/ic_font"
+                    android:id="@+id/style_roboto"
+                    android:title="@string/roboto_style_label" />
+                <item
+                    android:icon="@drawable/ic_font"
+                    android:id="@+id/style_sourcecode"
+                    android:title="@string/sourcecode_style_label" />
+            </group>
+        </menu>
+        </item>
+        <item
+            android:id="@+id/text_color"
+            android:icon="@drawable/ic_color"
+            android:title="@string/text_color_label">
+        <menu>
+            <group android:id="@+id/menugroup3">
+                <item
+                    android:icon="@drawable/ic_color"
+                    android:id="@+id/color_def"
+                    android:title="@string/def_color_label" />
+                <item
+                    android:icon="@drawable/ic_color"
+                    android:id="@+id/color_yellow"
+                    android:title="@string/yellow_color_label" />
+                <item
+                    android:icon="@drawable/ic_color"
+                    android:id="@+id/color_green"
+                    android:title="@string/green_color_label" />
+                <item
+                    android:icon="@drawable/ic_color"
+                    android:id="@+id/color_red"
+                    android:title="@string/red_color_label" />
+            </group>
+        </menu>
+        </item>
+    </group>
+</menu>

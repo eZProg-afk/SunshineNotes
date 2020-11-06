@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="Gradle: com.xeoh.android:text-highlighter:1.0.2@aar">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4bea9c34ffbca0fd11867f99423cd5c5/jetified-text-highlighter-1.0.2/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4bea9c34ffbca0fd11867f99423cd5c5/jetified-text-highlighter-1.0.2/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4bea9c34ffbca0fd11867f99423cd5c5/jetified-text-highlighter-1.0.2/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.xeoh.android/text-highlighter/1.0.2/8b3cfa2a8b99b86b7c2760a65babd6006764563a/text-highlighter-1.0.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.xeoh.android/text-highlighter/1.0.2/c7a82041491744b851e436d12c153b07df7bd1be/text-highlighter-1.0.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

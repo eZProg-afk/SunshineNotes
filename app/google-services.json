@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "625854141776",
+    "firebase_url": "https://sunshinenotes-a8c13.firebaseio.com",
+    "project_id": "sunshinenotes-a8c13",
+    "storage_bucket": "sunshinenotes-a8c13.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:625854141776:android:6c884ff7a6a469cb838855",
+        "android_client_info": {
+          "package_name": "spiral.bit.dev.sunshinenotes"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "625854141776-uohubpb9l6tl3dgrmacrrh2jbmtvm2o9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWgtwwsjhBw9xlv7Bp8hvPsq2bo5Bklkg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "625854141776-uohubpb9l6tl3dgrmacrrh2jbmtvm2o9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="preferenceScreen">
+
+    <PreferenceCategory
+        android:key="settings"
+        android:title="@string/settings_label">
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="enable_sound"
+            android:summaryOff="@string/sound_disabled"
+            android:summaryOn="@string/sound_enabled"
+            android:title="@string/notification_label" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="clear_settings"
+            android:summaryOff="@string/settings_not_reset_label"
+            android:summaryOn="@string/settings_reset_label"
+            android:title="@string/reset_settings_label" />
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="remove_toasts"
+            android:summaryOff="@string/not_show_label"
+            android:summaryOn="@string/show_label"
+            android:title="@string/toasts_label" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="save_note_on_exit"
+            android:summaryOff="@string/disabled"
+            android:summaryOn="@string/enabled"
+            android:switchTextOff="@string/disabled"
+            android:switchTextOn="@string/enabled"
+            android:title="@string/save_note_on_exit_label" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="theme"
+            android:summaryOff="@string/disabled"
+            android:summaryOn="@string/enabled"
+            android:switchTextOff="@string/disabled"
+            android:switchTextOn="@string/enabled"
+            android:title="@string/dark_theme_label" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="other"
+        android:title="@string/settings_other">
+        <Preference
+            android:key="rate"
+            android:title="@string/settings_rate" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="billing"
+        android:title="@string/settings_billing">
+        <Preference
+            android:key="purchase"
+            android:title="@string/settings_purchase" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
