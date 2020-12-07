@@ -10,7 +10,6 @@
     <uses-permission android:name="com.android.vending.BILLING" />
 
     <application
-        android:allowBackup="true"
         android:icon="@drawable/ava"
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
@@ -19,45 +18,26 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:targetApi="q">
-        <activity android:name=".activities.MusicActivity"></activity>
-        <activity android:name=".activities.PasswordActivity" />
-        <activity android:name=".activities.GraphicKeyActivityInput" />
-        <activity android:name=".activities.GraphicKeyActivityCreate" />
-        <activity
-            android:name=".activities.SettingsActivity"
-            android:parentActivityName=".activities.MainActivity"
-            android:theme="@style/Theme.AppCompat" />
-        <activity android:name=".activities.PinCodeActivity" />
-        <activity android:name=".activities.PromoIntroActivity">
+        <activity android:name=".activities.CreateActivity"></activity>
+        <activity android:name=".activities.BaseActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".activities.PasswordActivity" />
+        <activity android:name=".activities.PatternLockActivity" />
         <activity
-            android:name=".activities.CreateNoteActivity"
-            android:windowSoftInputMode="stateHidden" />
-        <activity
-            android:name=".activities.CreateCheckActivity"
-            android:windowSoftInputMode="stateHidden" />
+            android:name=".activities.SettingsActivity"
+            android:theme="@style/Theme.AppCompat" />
+        <activity android:name=".activities.PinCodeActivity" />
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="@string/admob_app_id" />
 
-        <activity
-            android:name=".activities.MainActivity"
-            android:launchMode="singleTop"
-            android:windowSoftInputMode="stateHidden">
-            <intent-filter>
-                <action android:name=".MainActivity" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-
-        <receiver android:name=".AlarmReceiver">
+        <receiver android:name=".other.AlarmReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />

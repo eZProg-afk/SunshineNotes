@@ -65,7 +65,7 @@
         android:includeFontPadding="false"
         android:paddingStart="@dimen/_8sdp"
         android:paddingEnd="@dimen/_8sdp"
-        android:text="Дата не задана"
+        android:text="@string/date_label"
         android:textColor="@color/colorWhite"
         android:textSize="@dimen/_13ssp"
         app:layout_constraintTop_toBottomOf="@id/date_note_created_label" />
@@ -83,7 +83,7 @@
         android:paddingStart="@dimen/_8sdp"
         android:paddingEnd="@dimen/_8sdp"
         android:textColor="@color/colorTextHint"
-        android:text="Дата редактирования заметки:"
+        android:text="@string/date_note_edit_label"
         android:textSize="@dimen/_13ssp"
         app:layout_constraintTop_toBottomOf="@id/date_note_created" />
 
@@ -114,7 +114,7 @@
         android:fontFamily="@font/ubuntu_regular"
         android:gravity="center_vertical"
         android:includeFontPadding="false"
-        android:text="Количество редактирований:"
+        android:text="@string/times_of_edit_label"
         android:textColor="@color/colorTextHint"
         android:textSize="@dimen/_13ssp"
         app:layout_constraintTop_toBottomOf="@id/date_note_edit" />
@@ -131,7 +131,7 @@
         android:includeFontPadding="false"
         android:paddingStart="@dimen/_8sdp"
         android:paddingEnd="@dimen/_8sdp"
-        android:text="0"
+        android:text="@string/def_times_of_edit"
         android:textColor="@color/colorWhite"
         android:textSize="@dimen/_13ssp"
         app:layout_constraintTop_toBottomOf="@id/date_note_edit"
@@ -148,7 +148,7 @@
         android:gravity="center_vertical"
         android:includeFontPadding="false"
         app:layout_constraintStart_toStartOf="@id/date_note_created"
-        android:text="Количество символов:"
+        android:text="@string/size_of_cymbals_label"
         android:textColor="@color/colorTextHint"
         android:textSize="@dimen/_13ssp"
         app:layout_constraintTop_toBottomOf="@id/date_times_edit" />
@@ -163,7 +163,7 @@
         android:fontFamily="@font/ubuntu_regular"
         android:gravity="center_vertical"
         android:includeFontPadding="false"
-        android:text="0"
+        android:text="@string/cymbals_in_note"
         android:textColor="@color/colorWhite"
         android:textSize="@dimen/_13ssp"
         app:layout_constraintStart_toStartOf="@id/date_times_edit"

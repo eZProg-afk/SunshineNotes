@@ -6,7 +6,7 @@
 
 <fragment
     android:id="@+id/settings_activity"
-    android:name="spiral.bit.dev.sunshinenotes.SettingsFragment"
+    android:name="spiral.bit.dev.sunshinenotes.fragments.SettingsFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent" />
 

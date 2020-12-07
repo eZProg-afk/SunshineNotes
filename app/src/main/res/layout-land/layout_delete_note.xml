@@ -69,7 +69,8 @@
         android:textSize="@dimen/_13ssp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_delete_note_message" />
+        app:layout_constraintTop_toBottomOf="@id/text_delete_note_message"
+        android:layout_marginRight="@dimen/_8sdp" />
 
     <TextView
         android:id="@+id/text_cancel"
@@ -86,7 +87,8 @@
         android:textSize="@dimen/_13ssp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/text_delete_note"
-        app:layout_constraintTop_toBottomOf="@id/text_delete_note_message" />
+        app:layout_constraintTop_toBottomOf="@id/text_delete_note_message"
+        android:layout_marginRight="@dimen/_8sdp" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

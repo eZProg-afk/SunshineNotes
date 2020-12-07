@@ -32,7 +32,8 @@
             android:scaleType="fitCenter"
             android:src="@drawable/brush"
             android:background="@drawable/ripple_effect"
-            app:tint="@color/colorDelete" />
+            app:tint="@color/colorDelete"
+            android:contentDescription="@string/icon_brush_cd" />
 
         <ImageView
             android:id="@+id/erase_btn"
@@ -43,7 +44,8 @@
             android:layout_marginTop="@dimen/_10sdp"
             android:src="@drawable/eraser"
             android:background="@drawable/ripple_effect"
-            app:tint="@color/colorDelete" />
+            app:tint="@color/colorDelete"
+            android:contentDescription="@string/icon_erase_cd" />
 
         <ImageView
             android:id="@+id/clear_all_canvas_btn"
@@ -51,10 +53,11 @@
             android:layout_height="@dimen/_20sdp"
             android:layout_marginStart="@dimen/_20sdp"
             android:layout_marginTop="@dimen/_10sdp"
-            android:src="@drawable/ic_clear_all"
+            android:src="@drawable/ic_close"
             android:background="@drawable/ripple_effect"
             android:layout_marginLeft="@dimen/_20sdp"
-            app:tint="@color/colorDelete" />
+            app:tint="@color/colorDelete"
+            android:contentDescription="@string/icon_clear_all_cd" />
 
         <ImageView
             android:id="@+id/size_select_btn"
@@ -65,7 +68,8 @@
             android:src="@drawable/ic_size"
             android:background="@drawable/ripple_effect"
             android:layout_marginLeft="@dimen/_20sdp"
-            app:tint="@color/colorDelete" />
+            app:tint="@color/colorDelete"
+            android:contentDescription="@string/icon_select_size_cd" />
 
     </LinearLayout>
 
@@ -93,7 +97,8 @@
             android:background="#FF660000"
             android:onClick="paintClicked"
             android:tag="#FF660000"
-            android:src="@drawable/edit_selector" />
+            android:src="@drawable/edit_selector"
+            android:contentDescription="@string/colour_1_cd" />
 
         <ImageView
             android:layout_width="35dp"
@@ -102,7 +107,8 @@
             android:background="#FFFF0000"
             android:onClick="paintClicked"
             android:src="@drawable/edit_selector"
-            android:tag="#FFFF0000" />
+            android:tag="#FFFF0000"
+            android:contentDescription="@string/colour_2_cd" />
 
         <ImageView
             android:layout_width="35dp"
@@ -111,7 +117,8 @@
             android:background="#FF6600"
             android:onClick="paintClicked"
             android:src="@drawable/edit_selector"
-            android:tag="#FF6600" />
+            android:tag="#FF6600"
+            android:contentDescription="@string/colour_3_cd" />
 
         <ImageView
             android:layout_width="35dp"
@@ -120,7 +127,8 @@
             android:background="#FFFFCC00"
             android:onClick="paintClicked"
             android:src="@drawable/edit_selector"
-            android:tag="#FFFFCC00" />
+            android:tag="#FFFFCC00"
+            android:contentDescription="@string/colour_4_cd" />
 
         <ImageView
             android:layout_width="35dp"
@@ -129,7 +137,8 @@
             android:background="#FF009900"
             android:onClick="paintClicked"
             android:src="@drawable/edit_selector"
-            android:tag="#FF009900" />
+            android:tag="#FF009900"
+            android:contentDescription="@string/colour_5_cd" />
 
 
         <ImageView
@@ -139,7 +148,8 @@
             android:background="#FF0000FF"
             android:onClick="paintClicked"
             android:src="@drawable/edit_selector"
-            android:tag="#FF0000FF" />
+            android:tag="#FF0000FF"
+            android:contentDescription="@string/colour_6_cd" />
 
         <ImageView
             android:layout_width="35dp"
@@ -148,7 +158,8 @@
             android:background="#FF6666"
             android:onClick="paintClicked"
             android:src="@drawable/edit_selector"
-            android:tag="#FF6666" />
+            android:tag="#FF6666"
+            android:contentDescription="@string/colour_7_cd" />
 
         <ImageView
             android:layout_width="35dp"
@@ -157,7 +168,8 @@
             android:background="#FFFFFF"
             android:onClick="paintClicked"
             android:src="@drawable/edit_selector"
-            android:tag="#FFFFFF" />
+            android:tag="#FFFFFF"
+            android:contentDescription="@string/colour_8_cd" />
 
         <ImageView
             android:layout_width="35dp"
@@ -166,7 +178,8 @@
             android:background="#FF787878"
             android:onClick="paintClicked"
             android:src="@drawable/edit_selector"
-            android:tag="#FF787878" />
+            android:tag="#FF787878"
+            android:contentDescription="@string/colour_9_cd" />
 
     </LinearLayout>
 

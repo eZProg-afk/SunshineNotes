@@ -32,7 +32,8 @@
             android:scaleType="fitCenter"
             android:src="@drawable/brush"
             android:background="@drawable/ripple_effect"
-            app:tint="@color/colorDelete" />
+            app:tint="@color/colorDelete"
+            android:contentDescription="@string/icon_brush_cd" />
 
         <ImageView
             android:id="@+id/erase_btn"
@@ -43,6 +44,7 @@
             android:layout_marginTop="@dimen/_10sdp"
             android:src="@drawable/eraser"
             android:background="@drawable/ripple_effect"
+            android:contentDescription="@string/icon_erase_cd"
             app:tint="@color/colorDelete" />
 
         <ImageView
@@ -51,15 +53,17 @@
             android:layout_height="@dimen/_20sdp"
             android:layout_marginStart="@dimen/_20sdp"
             android:layout_marginTop="@dimen/_10sdp"
-            android:src="@drawable/ic_clear_all"
+            android:src="@drawable/ic_close"
             android:background="@drawable/ripple_effect"
             android:layout_marginLeft="@dimen/_20sdp"
+            android:contentDescription="@string/icon_clear_all_cd"
             app:tint="@color/colorDelete" />
 
         <ImageView
             android:id="@+id/size_select_btn"
             android:layout_width="@dimen/_20sdp"
             android:layout_height="@dimen/_20sdp"
+            android:contentDescription="@string/icon_select_size_cd"
             android:layout_marginStart="@dimen/_20sdp"
             android:layout_marginTop="@dimen/_10sdp"
             android:src="@drawable/ic_size"
@@ -87,6 +91,7 @@
         android:layout_marginStart="20dp">
 
         <ImageView
+            android:contentDescription="@string/colour_1_cd"
             android:layout_width="35dp"
             android:layout_height="60dp"
             android:layout_margin="2dp"
@@ -96,6 +101,7 @@
             android:src="@drawable/edit_selector" />
 
         <ImageView
+            android:contentDescription="@string/colour_2_cd"
             android:layout_width="35dp"
             android:layout_height="60dp"
             android:layout_margin="2dp"
@@ -105,6 +111,7 @@
             android:tag="#FFFF0000" />
 
         <ImageView
+            android:contentDescription="@string/colour_3_cd"
             android:layout_width="35dp"
             android:layout_height="60dp"
             android:layout_margin="2dp"
@@ -114,6 +121,7 @@
             android:tag="#FF6600" />
 
         <ImageView
+            android:contentDescription="@string/colour_4_cd"
             android:layout_width="35dp"
             android:layout_height="60dp"
             android:layout_margin="2dp"
@@ -123,6 +131,7 @@
             android:tag="#FFFFCC00" />
 
         <ImageView
+            android:contentDescription="@string/colour_5_cd"
             android:layout_width="35dp"
             android:layout_height="60dp"
             android:layout_margin="2dp"
@@ -133,6 +142,7 @@
 
 
         <ImageView
+            android:contentDescription="@string/colour_6_cd"
             android:layout_width="35dp"
             android:layout_height="60dp"
             android:layout_margin="2dp"
@@ -142,6 +152,7 @@
             android:tag="#FF0000FF" />
 
         <ImageView
+            android:contentDescription="@string/colour_7_cd"
             android:layout_width="35dp"
             android:layout_height="60dp"
             android:layout_margin="2dp"
@@ -151,6 +162,7 @@
             android:tag="#FF6666" />
 
         <ImageView
+            android:contentDescription="@string/colour_8_cd"
             android:layout_width="35dp"
             android:layout_height="60dp"
             android:layout_margin="2dp"
@@ -160,6 +172,7 @@
             android:tag="#FFFFFF" />
 
         <ImageView
+            android:contentDescription="@string/colour_9_cd"
             android:layout_width="35dp"
             android:layout_height="60dp"
             android:layout_margin="2dp"

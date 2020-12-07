@@ -171,7 +171,7 @@
         android:layout_marginLeft="@dimen/_20sdp"
         android:layout_marginTop="@dimen/_18sdp"
         android:contentDescription="@string/cd_icon_delete_note"
-        android:src="@drawable/ic_clear_all"
+        android:src="@drawable/ic_close"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/image_remove"
         app:tint="@color/colorAccent" />

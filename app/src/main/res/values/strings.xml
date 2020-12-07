@@ -2,18 +2,18 @@
 
     //ADS
 
-
     <!--    <string name="google_play_license" translatable="false">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwsWgfleWZkA10T0vBfjVZ2Nzr8Yp7SKMLzhqq8CKCUcy/IYVdlKf31jT3IzO4tqLYnovStMTOEK3LCHBlJZSzdhKN4dqCjtap6+8MsE9gx4U3fvb+cccxZIIJpK5HM3DbXmuPNqneBEfSy1yVtEAt2KBAfZAOX7hajpmvnNnaGuKapz2eCJNOobuV7goKngWP/QYmYoOW5Hg+et7qwOrd6ZlkMixnbgXs5wjrqTItxrjwcdMPWnDzawSRpcT/ELGNy4p5KUw2HLVUuMdVwXsDg73Udyhx3a0ddO/as9wdG4EJ0uo0J2jsaSe1iFNRjyIyGKM6Cd2WH8oMqp/qzUZPQIDAQAB</string>-->
-    <!--    <string name="product_id" translatable="false">unical_key_for_sunshine_app_spiral</string>-->
+    <!--    <string name="product_id" translatable="false">404sunshinenotesdisads_spiral.bit.dev</string>-->
     <!--    <string name="admob_banner_id" translatable="false">ca-app-pub-7780453585001831/5798151852</string>-->
-    <!--    <string name="admob_create_note_banner_id" translatable="false">ca-app-pub-7780453585001831/5943896594</string>-->
-    <!--    <string name="admob_interstitial_id" translatable="false">ca-app-pub-7780453585001831/5877256488</string>-->
+    <!--    <string name="admob_create_note_banner_id" translatable="false">ca-app-pub-7780453585001831/1618464155</string>-->
+    <!--    <string name="admob_interstitial_id" translatable="false">ca-app-pub-7780453585001831/5943896594</string>-->
     <!--    <string name="admob_app_id" translatable="false">ca-app-pub-7780453585001831~8275113711</string>-->
 
-    <string name="google_play_license" translatable="false">787</string>
+    //ADS FOR TESTING AND UPDATE
+
+    <string name="google_play_license" translatable="false">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwsWgfleWZkA10T0vBfjVZ2Nzr8Yp7SKMLzhqq8CKCUcy/IYVdlKf31jT3IzO4tqLYnovStMTOEK3LCHBlJZSzdhKN4dqCjtap6+8MsE9gx4U3fvb+cccxZIIJpK5HM3DbXmuPNqneBEfSy1yVtEAt2KBAfZAOX7hajpmvnNnaGuKapz2eCJNOobuV7goKngWP/QYmYoOW5Hg+et7qwOrd6ZlkMixnbgXs5wjrqTItxrjwcdMPWnDzawSRpcT/ELGNy4p5KUw2HLVUuMdVwXsDg73Udyhx3a0ddO/as9wdG4EJ0uo0J2jsaSe1iFNRjyIyGKM6Cd2WH8oMqp/qzUZPQIDAQAB</string>
     <string name="product_id" translatable="false">android.test.purchased</string>
     <string name="admob_banner_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
-    <string name="admob_banner_folder_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
     <string name="admob_create_note_banner_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
     <string name="admob_interstitial_id" translatable="false">ca-app-pub-3940256099942544/1033173712</string>
     <string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
@@ -47,6 +47,23 @@
     <string name="cd_icon_remove">ICON REMOVE (DELETE)</string>
     <string name="cd_icon_delete_image">ICON DELETE IMAGE</string>
     <string name="cd_icon_delete_note">ICON DELETE NOTE</string>
+    <string name="icon_clear_text_cd">ICON CLEAR TEXT</string>
+    <string name="icon_brush_cd">ICON BRUSH</string>
+    <string name="icon_clear_all_cd">ICON CLEAR ALL</string>
+    <string name="icon_select_size_cd">ICON SELECT SIZE</string>
+    <string name="colour_1_cd">COLOUR 1</string>
+    <string name="colour_2_cd">COLOUR 2</string>
+    <string name="colour_3_cd">COLOUR 3</string>
+    <string name="colour_4_cd">COLOUR 4</string>
+    <string name="colour_5_cd">COLOUR 5</string>
+    <string name="colour_6_cd">COLOUR 6</string>
+    <string name="colour_7_cd">COLOUR 7</string>
+    <string name="colour_8_cd">COLOUR 8</string>
+    <string name="colour_9_cd">COLOUR 9</string>
+    <string name="icon_erase_cd">ICON ERASE</string>
+    <string name="icon_attach_cd">ICON ATTACH</string>
+    <string name="intro_image_cd">INTRO IMAGE</string>
+    <string name="icon_music_cd">Icon music</string>
 
     <string name="app_name">Sunshine Notes</string>
     <string name="my_notes_label">Мои Заметки</string>
@@ -71,15 +88,6 @@
     <string name="not_found_label">Ничего не найдено.\n Попробовать ещё раз ?</string>
     <string name="add_voice_record_label">Добавить запись голоса</string>
     <string name="record_voice_label">Запись голоса</string>
-    <string name="get_started_label">НАЧАТЬ</string>
-    <string name="promo_title_1">Поиск</string>
-    <string name="promo_title_2">Создание заметки</string>
-    <string name="promo_title_3">Комфортное меню</string>
-    <string name="promo_title_4">Меню быстрых действий</string>
-    <string name="promo_description_1">Простой поиск по уже созданным заметкам и понятный интерфейс.</string>
-    <string name="promo_description_2">Создавайте заметки просто, быстро и удобно.</string>
-    <string name="promo_description_3">Выбирайте заметке цвет, добавляйте изображения и ссылки в 2 клика.</string>
-    <string name="promo_description_4">В неудобных ситуациях быстро добавляйте заметку, ссылку или изображение.</string>
     <string name="cd_settings_icon">PIN CODE ICON</string>
     <string name="pin_code_success">Пин-код верный.</string>
     <string name="pin_code_failure">Пин-код неверный.</string>
@@ -131,7 +139,6 @@
     <string name="type_of_lock_label">Какой тип блокировки вы хотите поставить?</string>
     <string name="graphic_key_label">Графический ключ</string>
     <string name="pin_code_label">Пин-код</string>
-    <string name="password_label">Пароль</string>
     <string name="password_desc_label">Лучше всего придумать пароль, который включает в себя заглавные буквы, латиницу, цифры и символы, а длина которого будет более 8 символов.</string>
     <string name="add_draw_label">Добавить рисунок</string>
     <string name="save_label">СОХРАНИТЬ</string>
@@ -172,10 +179,9 @@
     <string name="no_draw_in_note_share_error">У вас нет рисунка в этой заметке!</string>
     <string name="no_img_in_note_share_error">У вас нет картинки в этой заметке!</string>
     <string name="def_style_label">Шрифт по-умолчанию</string>
-    <string name="comissioner_text_label">Comissioner</string>
+    <string name="comissioner_text_label">Commissioner</string>
     <string name="roboto_style_label">Roboto</string>
     <string name="sourcecode_style_label">Sourcecode</string>
-    <string name="preview_label">Предпросмотр</string>
     <string name="text_size_label">Размер текста</string>
     <string name="def_color_label">Цвет по-умолчанию</string>
     <string name="yellow_color_label">Желтый</string>
@@ -190,17 +196,38 @@
     <string name="add_voice_enter">Голосовой ввод</string>
     <string name="add_voice_speak_label">Привет! Начни говорить для того, чтобы написать заметку!</string>
     <string name="toast_error_record_denied">Без разрешения на запись вы\n не сможете использовать\n голосовой ввод :(</string>
+    <string name="this_note_not_has_been_edited">Эта заметка не была редактирована</string>
+    <string name="enter_title_of_list">Введите заголовок списка…</string>
+    <string name="dark_theme_label">Тёмная тема</string>
+    <string name="date_label">Дата не задана</string>
+    <string name="date_note_edit_label">Дата редактирования заметки:</string>
+    <string name="times_of_edit_label">Количество редактирований:</string>
+    <string name="def_times_of_edit">0</string>
+    <string name="size_of_cymbals_label">Количество символов:</string>
+    <string name="cymbals_in_note">0</string>
+    <string name="title_label">Заголовок</string>
+    <string name="description_label">Описание</string>
+    <string name="password_label">Пароль</string>
+    <string name="data_backup_label">Восстановление данных</string>
+    <string name="reserv_copy_label">Резервное копирование</string>
+    <string name="not_completed_label">Не выполнено</string>
+    <string name="completed_label">Выполнено</string>
+    <string name="reboot_app">Перезапустите приложение!</string>
+    <string name="enter_title_of_item">Введите новую задачу…</string>
+    <string name="my_tasks_label">Мои задачи</string>
+    <string name="search_hint_search_tasks">Поиск по задачам…</string>
+    <string name="now_empty_tasks_label">Сейчас здесь нет задач</string>
+    <string name="enter_title_of_check_list">Введите название чек-листа</string>
+    <string name="check_list_label">Чек-лист</string>
+    <string name="task_label">Задача</string>
+    <string name="now_not_folders_label">Сейчас здесь нет папок</string>
+    <string name="my_folders_label">Мои папки</string>
+    <string name="search_hint_search_folders">Поиск по папкам…</string>
+    <string name="enter_name_of_note">Введите название папки...</string>
+    <string name="notes_label">ЗАМЕТКИ</string>
+    <string name="tasks_label">ЗАДАЧИ</string>
+    <string name="folders_label">ПАПКИ</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="my_folders_label">Мои папки</string>
-    <string name="search_on_folders">Поиск по папкам...</string>
-    <string name="now_not_folders_there_label">Сейчас здесь нет папок</string>
-    <string name="this_note_not_has_been_edited">Эта заметка не была редактирована</string>
-    <string name="notes">Заметки</string>
-    <string name="folders">Папки</string>
-    <string name="trash">Корзина</string>
-    <string name="enter_title_of_list">Введите заголовок списка...</string>
-    <string name="dark_theme_label">Тёмная тема</string>
-    <string name="icon_music_cd">Icon music</string>
-    <string name="my_track_label">Выбрать из моей музыки</string>
+    <string name="trash_auto_delete_label">Корзина автоматически очищается каждые 30 дней.</string>
 </resources>

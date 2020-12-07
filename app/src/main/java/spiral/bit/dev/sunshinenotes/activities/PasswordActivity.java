@@ -12,11 +12,13 @@ import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.material.textfield.TextInputEditText;
 import java.util.concurrent.TimeUnit;
 import spiral.bit.dev.sunshinenotes.R;
+import spiral.bit.dev.sunshinenotes.fragments.NotesFragment;
 
 public class PasswordActivity extends AppCompatActivity {
 
     private TextInputEditText inputPassword;
-    private SharedPreferences prefPass, preferenceSettings, graphicPref;
+    private SharedPreferences prefPass;
+    private SharedPreferences preferenceSettings;
     private SharedPreferences.Editor editPass;
     private LottieAnimationView animationView;
     private SharedPreferences.Editor editorGraphicKey, editorPrefPin;
@@ -27,7 +29,7 @@ public class PasswordActivity extends AppCompatActivity {
         setContentView(R.layout.activity_password);
 
         prefPass = getApplicationContext().getSharedPreferences("pass", 0);
-        graphicPref = getSharedPreferences("graphic", 0);
+        SharedPreferences graphicPref = getSharedPreferences("graphic", 0);
         editorGraphicKey = graphicPref.edit();
         editorPrefPin = prefPass.edit();
         preferenceSettings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -50,13 +52,12 @@ public class PasswordActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     if (!prefPass.getString("passwordCode", "").equals(inputPassword.getText().toString())) {
-                        if (!preferenceSettings.getBoolean("remove_toasts", true)) {
-                        } else {
-                            Toast.makeText(PasswordActivity.this, R.string.password_isnt_right, Toast.LENGTH_SHORT).show();
-                        }
+                        if (preferenceSettings.getBoolean("remove_toasts", false))    Toast.makeText(
+                                PasswordActivity.this, R.string.password_isnt_right,
+                                Toast.LENGTH_SHORT).show();
                     } else {
                         final Intent intent = new Intent(PasswordActivity
-                                .this, MainActivity.class);
+                                .this, NotesFragment.class);
                         animationView.setVisibility(View.VISIBLE);
                         animationView.playAnimation();
                         Thread thread = new Thread() {
@@ -88,19 +89,18 @@ public class PasswordActivity extends AppCompatActivity {
                     editorGraphicKey.apply();
                     editPass.apply();
                     Intent intent = new Intent(PasswordActivity
-                            .this, MainActivity.class);
+                            .this, NotesFragment.class);
                     intent.putExtra("isFromBackKey", true);
                     startActivity(intent);
-                    if (!preferenceSettings.getBoolean("remove_toasts", true)) {
-                    } else {
-                        Toast.makeText(PasswordActivity.this, R.string.password_set_up, Toast.LENGTH_SHORT).show();
-                    }
+                    if (preferenceSettings.getBoolean("remove_toasts", false)) Toast.makeText(
+                            PasswordActivity.this, R.string.password_set_up,
+                            Toast.LENGTH_SHORT).show();
                 }
             });
             findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent(PasswordActivity.this, MainActivity.class);
+                    Intent intent = new Intent(PasswordActivity.this, NotesFragment.class);
                     intent.putExtra("isFromBackKey", true);
                     startActivity(intent);
                 }

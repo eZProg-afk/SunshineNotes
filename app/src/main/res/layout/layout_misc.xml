@@ -16,7 +16,8 @@
         android:layout_height="@dimen/_40sdp"
         android:layout_gravity="center"
         android:src="@drawable/ic_attachment"
-        app:tint="@color/colorIcons" />
+        app:tint="@color/colorIcons"
+        android:contentDescription="@string/icon_attach_cd" />
 
     <LinearLayout
         android:id="@+id/layout_note_color"

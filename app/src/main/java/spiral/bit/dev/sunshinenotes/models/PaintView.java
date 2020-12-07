@@ -1,5 +1,6 @@
 package spiral.bit.dev.sunshinenotes.models;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -12,21 +13,15 @@ import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-
-import spiral.bit.dev.sunshinenotes.R;
 
 public class PaintView extends View {
 
-    private ViewGroup.LayoutParams params;
     private Path drawPath;
-    private boolean erase = false;
     private Paint drawPaint, canvasPaint;
     private int paintColor = 0xFF660000;
     private Bitmap canvasBitmap;
     private float brushSize, lastBrushSize;
     private Canvas drawCanvas;
-
 
     public PaintView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -54,8 +49,7 @@ public class PaintView extends View {
     }
 
     public void setErase(boolean isErase) {
-        erase = isErase;
-        if (erase) drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+        if (isErase) drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         else {
             drawPaint.setXfermode(null);
             drawPaint.setColor(paintColor);
@@ -63,14 +57,9 @@ public class PaintView extends View {
     }
 
     public void setBrushSize(float newSize) {
-        float pixelAmount = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, newSize,
+        brushSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, newSize,
                 getResources().getDisplayMetrics());
-        brushSize = pixelAmount;
         drawPaint.setStrokeWidth(brushSize);
-    }
-
-    public void setLastBrushSize(float lastSize) {
-        lastBrushSize = lastSize;
     }
 
     public float getBrushSize() {
@@ -91,6 +80,7 @@ public class PaintView extends View {
         canvas.drawPath(drawPath, drawPaint);
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float touchX = event.getX();

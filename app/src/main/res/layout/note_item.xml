@@ -37,7 +37,7 @@
         android:layout_marginEnd="@dimen/_8sdp"
         android:fontFamily="@font/ubuntu_bold"
         android:includeFontPadding="false"
-        android:textColor="@color/colorWhite"
+        android:textColor="@color/note_title"
         android:textSize="@dimen/_13ssp" />
 
     <TextView

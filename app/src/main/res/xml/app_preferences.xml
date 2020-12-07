@@ -45,6 +45,20 @@
             android:switchTextOn="@string/enabled"
             android:title="@string/dark_theme_label" />
 
+        <PreferenceCategory
+            android:key="data_back_up"
+            android:title="@string/data_backup_label">
+
+            <CheckBoxPreference
+                android:title="@string/reserv_copy_label"
+                android:key="reserv_copy"
+                android:defaultValue="false"
+                android:summaryOff="@string/not_completed_label"
+                android:summaryOn="@string/completed_label" />
+
+
+        </PreferenceCategory>
+
     </PreferenceCategory>
 
     <PreferenceCategory

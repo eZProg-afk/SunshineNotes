@@ -1,74 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/layout_folder"
-    android:layout_width="@dimen/_150sdp"
+    android:id="@+id/layout_check"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginStart="@dimen/_12sdp"
-    android:paddingBottom="@dimen/_20sdp"
+    android:layout_marginLeft="@dimen/_12sdp"
     android:layout_marginTop="@dimen/_12sdp"
+    android:layout_marginEnd="@dimen/_12sdp"
+    android:padding="@dimen/_8sdp"
     android:background="@drawable/background_note"
-    android:orientation="vertical"
-    android:layout_marginLeft="@dimen/_12sdp">
+    android:orientation="vertical">
 
     <com.makeramen.roundedimageview.RoundedImageView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_width="@dimen/_15sdp"
+        android:layout_height="@dimen/_15sdp"
         android:adjustViewBounds="true"
-        android:visibility="gone"
-        app:riv_corner_radius_top_left="@dimen/_10sdp"
-        app:riv_corner_radius_top_right="@dimen/_10sdp"
-        android:id="@+id/image_folder" />
-
-    <com.makeramen.roundedimageview.RoundedImageView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        android:visibility="gone"
-        app:riv_corner_radius_top_left="@dimen/_10sdp"
-        app:riv_corner_radius_top_right="@dimen/_10sdp"
-        android:id="@+id/image_draw_note" />
-
-    <TextView
-        android:id="@+id/text_folder_title"
-        android:layout_width="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/_8sdp"
-        android:layout_marginTop="@dimen/_20sdp"
-        android:layout_marginEnd="@dimen/_8sdp"
-        android:fontFamily="@font/ubuntu_bold"
-        android:includeFontPadding="false"
-        android:textColor="@color/colorWhite"
-        android:textSize="@dimen/_13ssp" />
-
-    <TextView
-        android:id="@+id/text_folder_date_time"
-        android:layout_width="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/_8sdp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="@dimen/_8sdp"
-        android:fontFamily="@font/ubuntu_bold"
-        android:includeFontPadding="false"
-        android:textColor="@color/colorWhite"
-        android:textSize="@dimen/_13ssp" />
-
-    <ImageView
-        android:id="@+id/icon_add_folder_btn"
-        android:layout_width="@dimen/_80sdp"
-        android:layout_height="@dimen/_80sdp"
-        android:layout_marginStart="@dimen/_35sdp"
-        android:layout_marginLeft="@dimen/_35sdp"
+        android:src="@drawable/check"
+        android:layout_marginStart="@dimen/_10sdp"
         android:layout_marginTop="@dimen/_10sdp"
-        android:background="@drawable/background_add_btn"
-        android:padding="@dimen/_5sdp"
-        android:scaleType="centerInside"
-        android:src="@drawable/ic_check"
-        android:visibility="visible"
-        app:tint="@color/colorPrimary" />
+        app:riv_corner_radius_top_left="@dimen/_10sdp"
+        app:riv_corner_radius_top_right="@dimen/_10sdp"
+        android:id="@+id/check_img_label"
+        android:layout_marginLeft="@dimen/_10sdp" />
 
-</LinearLayout>
+    <TextView
+        app:layout_constraintTop_toTopOf="@id/check_img_label"
+        app:layout_constraintStart_toEndOf="@id/check_img_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_10sdp"
+        android:text="@string/task_label"
+        android:fontFamily="@font/ubuntu_regular"
+        android:textSize="16sp"
+        android:layout_gravity="center"
+        android:layout_marginLeft="@dimen/_10sdp" />
+
+    <TextView
+        android:id="@+id/check_title"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_8sdp"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:layout_marginEnd="@dimen/_8sdp"
+        android:fontFamily="@font/ubuntu_bold"
+        android:includeFontPadding="false"
+        android:textColor="@color/note_title"
+        android:textSize="@dimen/_13ssp"
+        app:layout_constraintEnd_toStartOf="@id/check_box"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/check_img_label" />
+
+    <CheckBox
+        android:id="@+id/check_box"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_10sdp"
+        android:layout_marginLeft="@dimen/_30sdp"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:checked="false"
+        app:layout_constraintStart_toEndOf="@id/check_title"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/check_date_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/_8sdp"
+        android:layout_marginEnd="@dimen/_8sdp"
+        android:layout_marginBottom="@dimen/_8sdp"
+        android:fontFamily="@font/ubuntu_regular"
+        android:includeFontPadding="false"
+        android:paddingBottom="@dimen/_10sdp"
+        android:textColor="@color/colorNoteSubTitleText"
+        android:textSize="@dimen/_7ssp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/check_box" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

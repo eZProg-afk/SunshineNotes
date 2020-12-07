@@ -1,5 +1,6 @@
 package spiral.bit.dev.sunshinenotes.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
@@ -17,31 +18,35 @@ import androidx.preference.PreferenceManager;
 import com.hanks.passcodeview.PasscodeView;
 
 import spiral.bit.dev.sunshinenotes.R;
+import spiral.bit.dev.sunshinenotes.fragments.NotesFragment;
 
 public class PinCodeActivity extends AppCompatActivity {
 
     private PasscodeView passCodeView;
     private AlertDialog dialogForgetPinCode, dialogRecreatePin;
-    private SharedPreferences prefSecret, prefPass, preferenceSettings, graphicPref, prefPassword;
-    private SharedPreferences.Editor editor, editPass, editorPrefPass;
+    private SharedPreferences prefSecret;
+    private SharedPreferences preferenceSettings;
+    private SharedPreferences.Editor editor;
+    private SharedPreferences.Editor editorPrefPass;
     private EditText inputSecretWord;
     private SharedPreferences.Editor editorGraphicKey, editorPrefPin;
 
+    @SuppressLint("CommitPrefEdits")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pin_code);
 
-        prefPassword = getSharedPreferences("password", 0);
+        SharedPreferences prefPassword = getSharedPreferences("password", 0);
         preferenceSettings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         prefSecret = getSharedPreferences("secret", 0);
-        prefPass = getSharedPreferences("password", 0);
-        graphicPref = getSharedPreferences("graphic", 0);
+        SharedPreferences prefPass = getSharedPreferences("password", 0);
+        SharedPreferences graphicPref = getSharedPreferences("graphic", 0);
 
         editorGraphicKey = graphicPref.edit();
         editorPrefPass = prefPassword.edit();
         editor = prefSecret.edit();
-        editPass = prefPass.edit();
+        SharedPreferences.Editor editPass = prefPass.edit();
     }
 
     private void openForgetDialog() {
@@ -61,10 +66,9 @@ public class PinCodeActivity extends AppCompatActivity {
                 public void onClick(View view) {
                     editor.putString("secretWord", inputSecretWord.getText().toString());
                     editor.apply();
-                    if (!preferenceSettings.getBoolean("remove_toasts", true)) {
-                    } else {
-                        Toast.makeText(PinCodeActivity.this, getString(R.string.secret_word_added_toast), Toast.LENGTH_SHORT).show();
-                    }
+                    if (preferenceSettings.getBoolean("remove_toasts", false)) Toast.makeText(
+                            PinCodeActivity.this, getString(R.string.secret_word_added_toast),
+                            Toast.LENGTH_SHORT).show();
                     dialogForgetPinCode.dismiss();
                 }
             });
@@ -96,15 +100,14 @@ public class PinCodeActivity extends AppCompatActivity {
                     String trueSecretWord = prefSecret.getString("secretWord", "");
                     String enteredSecretWord = inputSecretWord.getText().toString();
                     if (enteredSecretWord.equals(trueSecretWord)) {
-                        Intent intent = new Intent(PinCodeActivity.this, MainActivity.class);
+                        Intent intent = new Intent(PinCodeActivity.this, NotesFragment.class);
                         intent.putExtra("setForget", true);
                         startActivity(intent);
                     } else {
                         dialogRecreatePin.dismiss();
-                        if (!preferenceSettings.getBoolean("remove_toasts", true)) {
-                        } else {
-                            Toast.makeText(PinCodeActivity.this, R.string.secret_word_isnt_right, Toast.LENGTH_SHORT).show();
-                        }
+                        if (preferenceSettings.getBoolean("remove_toasts", false)) Toast.makeText(
+                                PinCodeActivity.this, R.string.secret_word_isnt_right,
+                                Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -139,10 +142,9 @@ public class PinCodeActivity extends AppCompatActivity {
         passCodeView.setListener(new PasscodeView.PasscodeViewListener() {
             @Override
             public void onFail() {
-                if (!preferenceSettings.getBoolean("remove_toasts", true)) {
-                } else {
-                    Toast.makeText(PinCodeActivity.this, R.string.pin_code_isnt_right, Toast.LENGTH_SHORT).show();
-                }
+                if (preferenceSettings.getBoolean("remove_toasts", false)) Toast.makeText(
+                        PinCodeActivity.this, R.string.pin_code_isnt_right,
+                        Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -154,12 +156,11 @@ public class PinCodeActivity extends AppCompatActivity {
                 editorGraphicKey.apply();
                 editor.apply();
                 if ((set != null && set.equals("set")) || prefPass.getString("pin-code", "").isEmpty()) {
-                    if (!preferenceSettings.getBoolean("remove_toasts", true)) {
-                    } else {
-                        Toast.makeText(PinCodeActivity.this, R.string.pin_code_set, Toast.LENGTH_SHORT).show();
-                    }
+                    if (preferenceSettings.getBoolean("remove_toasts", false)) Toast.makeText(
+                            PinCodeActivity.this, R.string.pin_code_set,
+                            Toast.LENGTH_SHORT).show();
                 }
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                Intent intent = new Intent(getApplicationContext(), NotesFragment.class);
                 if (passCodeView.getPasscodeType() == PasscodeView.PasscodeViewType.TYPE_SET_PASSCODE) {
                     intent.putExtra("isFromSet", true);
                 }
