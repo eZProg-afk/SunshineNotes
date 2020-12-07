@@ -24,7 +24,7 @@ import spiral.bit.dev.sunshinenotes.fragments.CreateFolderFragment;
 import spiral.bit.dev.sunshinenotes.fragments.CreateNoteFragment;
 import spiral.bit.dev.sunshinenotes.fragments.FoldersFragment;
 import spiral.bit.dev.sunshinenotes.fragments.NotesFragment;
-
+//
 public class BaseActivity extends FragmentActivity {
 
     private Fragment fragment;
