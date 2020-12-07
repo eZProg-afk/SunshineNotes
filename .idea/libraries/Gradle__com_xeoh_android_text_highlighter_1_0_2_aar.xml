@@ -1,9 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: com.xeoh.android:text-highlighter:1.0.2@aar">
     <CLASSES>
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4bea9c34ffbca0fd11867f99423cd5c5/jetified-text-highlighter-1.0.2/AndroidManifest.xml" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4bea9c34ffbca0fd11867f99423cd5c5/jetified-text-highlighter-1.0.2/res" />
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/4bea9c34ffbca0fd11867f99423cd5c5/jetified-text-highlighter-1.0.2/jars/classes.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/a6c9a87d7a095be316c9d1de40521912/jetified-text-highlighter-1.0.2/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/a6c9a87d7a095be316c9d1de40521912/jetified-text-highlighter-1.0.2/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/a6c9a87d7a095be316c9d1de40521912/jetified-text-highlighter-1.0.2/res" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.xeoh.android/text-highlighter/1.0.2/8b3cfa2a8b99b86b7c2760a65babd6006764563a/text-highlighter-1.0.2-javadoc.jar!/" />
