@@ -1,4 +1,4 @@
-package spiral.bit.dev.sunshinenotes.activities;
+package spiral.bit.dev.sunshinenotes.activities.lock;
 
 import android.content.Intent;
 import android.content.SharedPreferences;

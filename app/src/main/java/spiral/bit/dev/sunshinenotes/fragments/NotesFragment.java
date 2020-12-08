@@ -19,30 +19,23 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentResultListener;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
-
 import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.xeoh.android.texthighlighter.TextHighlighter;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import spiral.bit.dev.sunshinenotes.R;
-import spiral.bit.dev.sunshinenotes.activities.BaseActivity;
-import spiral.bit.dev.sunshinenotes.activities.PasswordActivity;
-import spiral.bit.dev.sunshinenotes.activities.PatternLockActivity;
-import spiral.bit.dev.sunshinenotes.activities.PinCodeActivity;
+import spiral.bit.dev.sunshinenotes.activities.create.CreateNoteActivity;
+import spiral.bit.dev.sunshinenotes.activities.lock.PasswordActivity;
+import spiral.bit.dev.sunshinenotes.activities.lock.PatternLockActivity;
+import spiral.bit.dev.sunshinenotes.activities.lock.PinCodeActivity;
 import spiral.bit.dev.sunshinenotes.activities.SettingsActivity;
 import spiral.bit.dev.sunshinenotes.adapter.NoteAdapter;
 import spiral.bit.dev.sunshinenotes.data.NoteDatabase;
@@ -76,18 +69,6 @@ public class NotesFragment extends Fragment implements NotesListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_notes, container, false);
-//        BaseActivity.toggleBottomBar(true);
-        getParentFragmentManager().setFragmentResultListener("requestKey",
-                this, new FragmentResultListener() {
-            @Override
-            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-                if (requestKey.equals(String.valueOf(ADD_NOTE_CODE))) {
-                    getNotes(ADD_NOTE_CODE, false);
-                } else if (requestKey.equals(String.valueOf(UPDATE_NOTE_CODE))) {
-                    getNotes(UPDATE_NOTE_CODE, false);
-                }
-            }
-        });
         preferenceSettings = PreferenceManager
                 .getDefaultSharedPreferences(getContext().getApplicationContext());
         if (preferenceSettings.getBoolean("dark", false)) AppCompatDelegate
@@ -275,14 +256,11 @@ public class NotesFragment extends Fragment implements NotesListener {
     @Override
     public void onNoteClicked(SimpleNote simpleNote, int position) {
         clickedNotePosition = position;
-        CreateNoteFragment createNoteFragment = new CreateNoteFragment();
-        Bundle result = new Bundle();
-        result.putSerializable("note", simpleNote);
-        getParentFragmentManager().setFragmentResult(String.valueOf(UPDATE_NOTE_CODE), result);
-        createNoteFragment.setArguments(result);
-        FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.replaced_container, createNoteFragment)
-                .commit();
+        Intent intent = new Intent(getContext(), CreateNoteActivity.class);
+        intent.putExtra("note", simpleNote);
+        intent.putExtra("setViewOrUpdate", true);
+        intent.putExtra("isNoteDeleted", false);
+        startActivityForResult(intent, UPDATE_NOTE_CODE);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package spiral.bit.dev.sunshinenotes.fragments;
+package spiral.bit.dev.sunshinenotes.activities.create;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,11 +37,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentResultListener;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.gms.ads.AdRequest;
@@ -57,15 +56,17 @@ import java.util.Date;
 import java.util.Locale;
 
 import spiral.bit.dev.sunshinenotes.R;
+import spiral.bit.dev.sunshinenotes.activities.BaseActivity;
 import spiral.bit.dev.sunshinenotes.data.NoteInFolderDatabase;
+import spiral.bit.dev.sunshinenotes.fragments.FoldersFragment;
+import spiral.bit.dev.sunshinenotes.fragments.SettingsFragment;
 import spiral.bit.dev.sunshinenotes.models.Folder;
 import spiral.bit.dev.sunshinenotes.other.AlarmReceiver;
-import static android.content.Context.ALARM_SERVICE;
-import static spiral.bit.dev.sunshinenotes.fragments.CheckListFragment.ADD_NOTE_CODE;
-import static spiral.bit.dev.sunshinenotes.fragments.CheckListFragment.UPDATE_NOTE_CODE;
 import static spiral.bit.dev.sunshinenotes.fragments.NotesFragment.hideKeyboard;
+import static spiral.bit.dev.sunshinenotes.other.Utils.ADD_FOLDER_CODE;
+import static spiral.bit.dev.sunshinenotes.other.Utils.UPDATE_FOLDER_CODE;
 
-public class CreateFolderFragment extends Fragment {
+public class CreateFolderActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_SPEECH = 125;
     private static final int PERMISSION_STORAGE_CODE = 11;
@@ -90,76 +91,41 @@ public class CreateFolderFragment extends Fragment {
     private PendingIntent pendingIntent;
     private TimePicker timePicker;
 
-
     @SuppressLint("CommitPrefEdits")
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.fragment_create_folder, container, false);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_create_folder);
 
-        getParentFragmentManager().setFragmentResultListener(String.valueOf(UPDATE_NOTE_CODE), this, new FragmentResultListener() {
-            @Override
-            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-                if (requestKey.equals(String.valueOf(UPDATE_NOTE_CODE))) {
-                    alreadyAvailableFolder = (Folder) bundle.getSerializable("folder");
-                    setViewOrUpdateFolder(view);
-                } else if (requestKey.equals(String.valueOf(REQUEST_CODE_SPEECH))) {
-                    ArrayList<String> result = bundle.getStringArrayList(RecognizerIntent.EXTRA_RESULTS);
-                    StringBuilder builder = new StringBuilder();
-                    for (String item : result) {
-                        String finalItem = item.replace("[]", " ");
-                        builder.append(finalItem);
-                    }
-                } else if (requestKey.equals(String.valueOf(CODE_SELECT_IMG))) {
-//                    if (bundle != null) {
-//                        Uri selectedImgUri = bundle.get();
-//                        if (selectedImgUri != null) {
-//                            try {
-//                                InputStream is = getContext().getContentResolver().openInputStream(selectedImgUri);
-//                                Bitmap bitmap = BitmapFactory.decodeStream(is);
-//                                imageNote.setImageBitmap(bitmap);
-//                                imageNote.setVisibility(View.VISIBLE);
-//                                getView().findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
-//                                selectedImgPath = getPathFromUri(selectedImgUri);
-//                            } catch (Exception e) {
-//                                if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-//                                        getContext(), getString(R.string.error_add_img_toast),
-//                                        Toast.LENGTH_SHORT).show();
-//                            }
-//                        }
-//                    }
-                }
-            }
-        });
-        prefTimesEdited = getContext().getSharedPreferences("timesEditedPref", 0);
-        preferencesSettings = PreferenceManager.getDefaultSharedPreferences(getContext().getApplicationContext());
-        prefChoice = getContext().getSharedPreferences("choice", 0);
+        prefTimesEdited = getSharedPreferences("timesEditedPref", 0);
+        preferencesSettings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        prefChoice = getSharedPreferences("choice", 0);
         editorChoice = prefChoice.edit();
         editorTimes = prefTimesEdited.edit();
-        ImageView imageBack = view.findViewById(R.id.image_back);
-        inputFolderTitle = view.findViewById(R.id.input_folder_title);
-        inputFolderSubTitle = view.findViewById(R.id.input_folder_sub_title);
-        textDateTime = view.findViewById(R.id.folder_date_time);
-        viewSubTitleIndicator = view.findViewById(R.id.folder_sub_title_indicator);
-        ImageView imgInfo = view.findViewById(R.id.image_info_note);
-        ImageView imgShare = view.findViewById(R.id.image_share);
-        imageNote = view.findViewById(R.id.image_folder);
+        ImageView imageBack = findViewById(R.id.image_back);
+        inputFolderTitle = findViewById(R.id.input_folder_title);
+        inputFolderSubTitle = findViewById(R.id.input_folder_sub_title);
+        textDateTime = findViewById(R.id.folder_date_time);
+        viewSubTitleIndicator = findViewById(R.id.folder_sub_title_indicator);
+        ImageView imgInfo = findViewById(R.id.image_info_note);
+        ImageView imgShare = findViewById(R.id.image_share);
+        imageNote = findViewById(R.id.image_folder);
         textDateTime.setText(new SimpleDateFormat("EEEE, dd, MMMM yyyy HH:mm a", Locale.getDefault())
                 .format(new Date()));
 
-        layoutMisc = view.findViewById(R.id.layout_miscellaneous);
+        layoutMisc = findViewById(R.id.layout_miscellaneous);
         bottomSheetBehavior = BottomSheetBehavior.from(layoutMisc);
 
-        AdView mAdView = view.findViewById(R.id.banner);
+        AdView mAdView = findViewById(R.id.banner);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
-        if (SettingsFragment.getIsPurchased(getContext())) mAdView.setVisibility(View.GONE);
+        if (SettingsFragment.getIsPurchased(CreateFolderActivity.this)) mAdView.setVisibility(View.GONE);
 
         imageBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                hideKeyboard(getActivity());
-                //onBackPressed();
+                hideKeyboard(CreateFolderActivity.this);
+                onBackPressed();
             }
         });
 
@@ -168,7 +134,7 @@ public class CreateFolderFragment extends Fragment {
             public void onClick(View v) {
                 if (alreadyAvailableFolder != null) {
                     if (imageNote.getVisibility() == View.VISIBLE) {
-                        shareDialog(view);
+                        shareDialog();
                     } else {
                         Intent intent = new Intent(android.content.Intent.ACTION_SEND);
                         intent.setType("text/plain");
@@ -178,19 +144,19 @@ public class CreateFolderFragment extends Fragment {
                     }
                 } else {
                     if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            getContext(), getString(R.string.error_toast),
+                            CreateFolderActivity.this, getString(R.string.error_toast),
                             Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        ImageView imgSave = view.findViewById(R.id.image_save);
+        ImageView imgSave = findViewById(R.id.image_save);
         imgSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!SettingsFragment.getIsPurchased(getContext()))
+                if (!SettingsFragment.getIsPurchased(CreateFolderActivity.this))
                     if (mInterstitialAd.isLoaded()) mInterstitialAd.show();
-                hideKeyboard(getActivity());
+                hideKeyboard(CreateFolderActivity.this);
                 saveCheck();
             }
         });
@@ -200,16 +166,16 @@ public class CreateFolderFragment extends Fragment {
             public void onClick(View view) {
                 if (alreadyAvailableFolder != null) {
                     showInfoNoteDialog(alreadyAvailableFolder.getDateTime(),
-                            alreadyAvailableFolder.getName().length(), view);
+                            alreadyAvailableFolder.getName().length());
                 } else {
                     if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            getContext(), getString(R.string.info_img_error_toast),
+                            CreateFolderActivity.this, getString(R.string.info_img_error_toast),
                             Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        view.findViewById(R.id.img_remove_image).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.img_remove_image).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 imageNote.setImageBitmap(null);
@@ -219,19 +185,18 @@ public class CreateFolderFragment extends Fragment {
             }
         });
 
-        initMisc(view);
+        initMisc();
         setSubTitleIndicator();
-        return view;
     }
 
     private void saveCheck() {
         if (inputFolderTitle.getText().toString().trim().isEmpty()) {
-            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(getContext(),
+            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(CreateFolderActivity.this,
                     getString(R.string.toast_error_title_empty),
                     Toast.LENGTH_SHORT).show();
             return;
         } else if (inputFolderSubTitle.getText().toString().trim().isEmpty()) {
-            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(getContext(),
+            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(CreateFolderActivity.this,
                     getString(R.string.toast_error_empty_note),
                     Toast.LENGTH_SHORT).show();
             return;
@@ -252,7 +217,7 @@ public class CreateFolderFragment extends Fragment {
         class SaveFolderAsyncTask extends AsyncTask<Void, Void, Void> {
             @Override
             protected Void doInBackground(Void... voids) {
-                NoteInFolderDatabase.getNoteDatabase(getContext().getApplicationContext())
+                NoteInFolderDatabase.getNoteDatabase(getApplicationContext())
                         .getNoteDAO().insertFolder(folder);
                 return null;
             }
@@ -260,24 +225,21 @@ public class CreateFolderFragment extends Fragment {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                Bundle result = new Bundle();
-                result.putString(String.valueOf(ADD_NOTE_CODE), "result");
-                hideKeyboard(getActivity());
-                getParentFragmentManager().setFragmentResult(String.valueOf(ADD_NOTE_CODE), result);
-                FoldersFragment foldersFragment = new FoldersFragment();
-                FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-                fragmentTransaction.replace(R.id.replaced_container, foldersFragment)
-                        .commit();
+                hideKeyboard(CreateFolderActivity.this);
+                Intent intent = new Intent(CreateFolderActivity.this, BaseActivity.class);
+                startActivityForResult(intent, ADD_FOLDER_CODE);
+                setResult(RESULT_OK, intent);
+                finish();
             }
         }
         new SaveFolderAsyncTask().execute();
     }
 
-    private void showInfoNoteDialog(String dateTimeCreated, int lengthOfCymbals, final View viewContext) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = LayoutInflater.from(getContext())
+    private void showInfoNoteDialog(String dateTimeCreated, int lengthOfCymbals) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
                 .inflate(R.layout.layout_info_about_note,
-                        (ViewGroup) viewContext.findViewById(R.id.layout_info_about_note_container));
+                        (ViewGroup) findViewById(R.id.layout_info_about_note_container));
         builder.setView(view);
         dialogInfoNote = builder.create();
         if (dialogInfoNote.getWindow() != null) {
@@ -296,7 +258,7 @@ public class CreateFolderFragment extends Fragment {
         dialogInfoNote.show();
     }
 
-    private void setViewOrUpdateFolder(final View viewContext) {
+    private void setViewOrUpdateFolder() {
         inputFolderSubTitle.setText(alreadyAvailableFolder.getSubTitle());
         textDateTime.setText(alreadyAvailableFolder.getDateTime());
         editorTimes.putInt("timesEdited", prefTimesEdited.getInt("timesEdited", 0) + 1);
@@ -305,13 +267,13 @@ public class CreateFolderFragment extends Fragment {
         if (alreadyAvailableFolder.getImagePath() != null && !alreadyAvailableFolder.getImagePath().trim().isEmpty()) {
             imageNote.setImageBitmap(BitmapFactory.decodeFile(alreadyAvailableFolder.getImagePath()));
             imageNote.setVisibility(View.VISIBLE);
-            viewContext.findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
+            findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
             selectedImgPath = alreadyAvailableFolder.getImagePath();
         }
     }
 
-    private void initMisc(final View viewContext) {
-        final ImageView attach = viewContext.findViewById(R.id.attach);
+    private void initMisc() {
+        final ImageView attach = findViewById(R.id.attach);
         layoutMisc.findViewById(R.id.attach
         ).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -553,9 +515,9 @@ public class CreateFolderFragment extends Fragment {
         layoutMisc.findViewById(R.id.layout_add_note_voice).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(getContext().getApplicationContext(), Manifest.permission.RECORD_AUDIO)
+                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO)
                         != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(getActivity(), new String[]
+                    ActivityCompat.requestPermissions(CreateFolderActivity.this, new String[]
                                     {Manifest.permission.RECORD_AUDIO},
                             PERMISSION_RECORD_CODE);
                 } else {
@@ -568,9 +530,9 @@ public class CreateFolderFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                if (ContextCompat.checkSelfPermission(getContext().getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
+                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
                         != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(getActivity(), new String[]
+                    ActivityCompat.requestPermissions(CreateFolderActivity.this, new String[]
                                     {Manifest.permission.READ_EXTERNAL_STORAGE},
                             PERMISSION_STORAGE_CODE);
                 } else {
@@ -585,7 +547,7 @@ public class CreateFolderFragment extends Fragment {
                 @Override
                 public void onClick(View view) {
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                    openRemindDialog(view);
+                    openRemindDialog();
                 }
             });
         }
@@ -596,7 +558,7 @@ public class CreateFolderFragment extends Fragment {
                 @Override
                 public void onClick(View view) {
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                    showDeleteNoteDialog(view);
+                    showDeleteNoteDialog();
                 }
             });
         }
@@ -613,11 +575,11 @@ public class CreateFolderFragment extends Fragment {
         startActivityForResult(intent, REQUEST_CODE_SPEECH);
     }
 
-    private void openRemindDialog(final View viewContext) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = LayoutInflater.from(getContext())
+    private void openRemindDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
                 .inflate(R.layout.dialog_picker,
-                        (ViewGroup) viewContext.findViewById(R.id.layout_dialog_picker_container));
+                        (ViewGroup) findViewById(R.id.layout_dialog_picker_container));
         builder.setView(view);
         dialogRemind = builder.create();
         if (dialogRemind.getWindow() != null) {
@@ -635,13 +597,13 @@ public class CreateFolderFragment extends Fragment {
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View view) {
-                alarmManager = (AlarmManager) getContext().getSystemService(ALARM_SERVICE);
+                alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
                 final Calendar c = Calendar.getInstance();
-                Intent intent = new Intent(getContext().getApplicationContext(), AlarmReceiver.class);
+                Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
                 intent.putExtra("nameOfNote", alreadyAvailableFolder.getName());
                 c.set(Calendar.HOUR_OF_DAY, timePicker.getHour());
                 c.set(Calendar.MINUTE, timePicker.getMinute());
-                pendingIntent = PendingIntent.getBroadcast(getContext(), 0, intent,
+                pendingIntent = PendingIntent.getBroadcast(CreateFolderActivity.this, 0, intent,
                         PendingIntent.FLAG_UPDATE_CURRENT);
                 alarmManager.set(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
                 dialogRemind.dismiss();
@@ -650,56 +612,56 @@ public class CreateFolderFragment extends Fragment {
         dialogRemind.show();
     }
 
-//    @Override
-//    public boolean onKeyDown(int keyCode, KeyEvent event) {
-//        if (keyCode == KeyEvent.KEYCODE_MENU) {
-//            if (preferencesSettings.getBoolean("save_note_on_exit", false)) {
-//                event.startTracking();
-//                saveCheck();
-//                return true;
-//            } else {
-//                event.startTracking();
-//                return true;
-//            }
-//        } else if (keyCode == KeyEvent.KEYCODE_HOME) {
-//            if (preferencesSettings.getBoolean("save_note_on_exit", false)) {
-//                event.startTracking();
-//                saveCheck();
-//                return true;
-//            } else {
-//                event.startTracking();
-//                return true;
-//            }
-//        }
-//        return super.onKeyDown(keyCode, event);
-//    }
-//
-//    @Override
-//    public void onBackPressed() {
-//        if (preferencesSettings.getBoolean("clear_settings", false)) {
-//            SharedPreferences.Editor editor = preferencesSettings.edit();
-//            editor.putBoolean("clear_settings", false);
-//            editor.apply();
-//            openQuitDialog();
-//        } else {
-//            if (prefChoice.getBoolean("choice_is_check", false)) {
-//                String save = prefChoice.getString("choice_is_save", "");
-//                if (save.equals("save")) saveCheck();
-//                Intent intent = new Intent(CreateFolderActivity.this, BaseActivity.class);
-//                setResult(RESULT_OK, intent);
-//                startActivity(intent);
-//                finish();
-//            } else {
-//                openQuitDialog();
-//            }
-//        }
-//    }
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
+            if (preferencesSettings.getBoolean("save_note_on_exit", false)) {
+                event.startTracking();
+                saveCheck();
+                return true;
+            } else {
+                event.startTracking();
+                return true;
+            }
+        } else if (keyCode == KeyEvent.KEYCODE_HOME) {
+            if (preferencesSettings.getBoolean("save_note_on_exit", false)) {
+                event.startTracking();
+                saveCheck();
+                return true;
+            } else {
+                event.startTracking();
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 
-    private void openQuitDialog(final View viewContext) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = LayoutInflater.from(getContext())
+    @Override
+    public void onBackPressed() {
+        if (preferencesSettings.getBoolean("clear_settings", false)) {
+            SharedPreferences.Editor editor = preferencesSettings.edit();
+            editor.putBoolean("clear_settings", false);
+            editor.apply();
+            openQuitDialog();
+        } else {
+            if (prefChoice.getBoolean("choice_is_check", false)) {
+                String save = prefChoice.getString("choice_is_save", "");
+                if (save.equals("save")) saveCheck();
+                Intent intent = new Intent(CreateFolderActivity.this, BaseActivity.class);
+                setResult(RESULT_OK, intent);
+                startActivity(intent);
+                finish();
+            } else {
+                openQuitDialog();
+            }
+        }
+    }
+
+    private void openQuitDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
                 .inflate(R.layout.layout_exit_save_note,
-                        (ViewGroup) viewContext.findViewById(R.id.layout_exit_save_note_container));
+                        (ViewGroup) findViewById(R.id.layout_exit_save_note_container));
         builder.setView(view);
         dialogExitSave = builder.create();
         if (dialogExitSave.getWindow() != null) {
@@ -722,13 +684,13 @@ public class CreateFolderFragment extends Fragment {
                 if (saveChoice.isChecked()) {
                     editorChoice.putString("choice_is_save", "save");
                     editorChoice.apply();
-                    Intent intent = new Intent(getContext(), FoldersFragment.class);
+                    Intent intent = new Intent(CreateFolderActivity.this, FoldersFragment.class);
                     intent.putExtra("isFromBackKey", true);
                     startActivity(intent);
                 } else {
                     editorChoice.putString("choice_is_save", "");
                     editorChoice.apply();
-                    Intent intent = new Intent(getContext(), FoldersFragment.class);
+                    Intent intent = new Intent(CreateFolderActivity.this, FoldersFragment.class);
                     intent.putExtra("isFromBackKey", true);
                     startActivity(intent);
                 }
@@ -738,7 +700,7 @@ public class CreateFolderFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 dialogExitSave.dismiss();
-                Intent intent = new Intent(getContext(), FoldersFragment.class);
+                Intent intent = new Intent(CreateFolderActivity.this, FoldersFragment.class);
                 intent.putExtra("isFromBackKey", true);
                 startActivity(intent);
             }
@@ -746,11 +708,45 @@ public class CreateFolderFragment extends Fragment {
         dialogExitSave.show();
     }
 
-    private void shareDialog(final View viewContext) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = LayoutInflater.from(getContext())
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == UPDATE_FOLDER_CODE && resultCode == RESULT_OK) {
+            alreadyAvailableFolder = (Folder) data.getSerializableExtra("folder");
+            setViewOrUpdateFolder();
+        } else if (requestCode == REQUEST_CODE_SPEECH && resultCode == RESULT_OK) {
+            ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            StringBuilder builder = new StringBuilder();
+            for (String item : result) {
+                String finalItem = item.replace("[]", " ");
+                builder.append(finalItem);
+            }
+        } else if (requestCode == CODE_SELECT_IMG && resultCode == RESULT_OK) {
+                    if (data != null) {
+                        Uri selectedImgUri = data.getData();
+                        if (selectedImgUri != null) {
+                            try {
+                                InputStream is = getContentResolver().openInputStream(selectedImgUri);
+                                Bitmap bitmap = BitmapFactory.decodeStream(is);
+                                imageNote.setImageBitmap(bitmap);
+                                imageNote.setVisibility(View.VISIBLE);
+                                findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
+                                selectedImgPath = getPathFromUri(selectedImgUri);
+                            } catch (Exception e) {
+                                if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
+                                        CreateFolderActivity.this, getString(R.string.error_add_img_toast),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+        }
+    }
+
+    private void shareDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
                 .inflate(R.layout.layout_share_note,
-                        (ViewGroup) viewContext.findViewById(R.id.layout_share_note_container));
+                        (ViewGroup) findViewById(R.id.layout_share_note_container));
         builder.setView(view);
         shareDialog = builder.create();
         if (shareDialog.getWindow() != null) {
@@ -768,14 +764,14 @@ public class CreateFolderFragment extends Fragment {
                     Bitmap bitmap = ((BitmapDrawable) imageNote.getDrawable()).getBitmap();
                     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-                    String path = MediaStore.Images.Media.insertImage(getContext().getContentResolver(),
+                    String path = MediaStore.Images.Media.insertImage(getContentResolver(),
                             bitmap, "image", null);
                     Uri imageDrawUri = Uri.parse(path);
                     intent.putExtra(Intent.EXTRA_STREAM, imageDrawUri);
                     shareDialog.dismiss();
                     startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
                 } else {
-                    Toast.makeText(getContext(), getString(R.string.no_img_in_note_share_error), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CreateFolderActivity.this, getString(R.string.no_img_in_note_share_error), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -800,11 +796,11 @@ public class CreateFolderFragment extends Fragment {
         shareDialog.show();
     }
 
-    private void showDeleteNoteDialog(final View viewContext) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = LayoutInflater.from(getContext())
+    private void showDeleteNoteDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
                 .inflate(R.layout.layout_delete_note,
-                        (ViewGroup) viewContext.findViewById(R.id.layout_delete_note_container));
+                        (ViewGroup) findViewById(R.id.layout_delete_note_container));
         builder.setView(view);
         dialogDeleteNote = builder.create();
         if (dialogDeleteNote.getWindow() != null) {
@@ -813,7 +809,7 @@ public class CreateFolderFragment extends Fragment {
         view.findViewById(R.id.text_delete_note).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new CreateFolderFragment.DeleteNoteAsyncTask().execute();
+                new CreateFolderActivity.DeleteNoteAsyncTask().execute();
             }
         });
         view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
@@ -832,14 +828,14 @@ public class CreateFolderFragment extends Fragment {
 
     private void selectImg() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        if (intent.resolveActivity(getContext().getPackageManager()) != null) {
+        if (intent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(intent, CODE_SELECT_IMG);
         }
     }
 
     public String getPathFromUri(Uri uri) {
         String pathToFile;
-        Cursor cursor = getContext().getContentResolver().query(uri, null, null, null, null);
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
         if (cursor == null) {
             pathToFile = uri.getPath();
         } else {
@@ -860,7 +856,7 @@ public class CreateFolderFragment extends Fragment {
                 selectImg();
             } else {
                 if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                        getContext(), getString(R.string.error_toast_perm_denied),
+                        this, getString(R.string.error_toast_perm_denied),
                         Toast.LENGTH_SHORT).show();
             }
         }
@@ -869,7 +865,7 @@ public class CreateFolderFragment extends Fragment {
                 enterVoice();
             } else {
                 if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                        getContext(), getString(R.string.toast_error_record_denied),
+                        this, getString(R.string.toast_error_record_denied),
                         Toast.LENGTH_SHORT).show();
             }
         }
@@ -879,7 +875,7 @@ public class CreateFolderFragment extends Fragment {
     class DeleteNoteAsyncTask extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... voids) {
-            NoteInFolderDatabase.getNoteDatabase(getContext().getApplicationContext())
+            NoteInFolderDatabase.getNoteDatabase(getApplicationContext())
                     .getNoteDAO().deleteFolder(alreadyAvailableFolder);
             return null;
         }
@@ -887,13 +883,13 @@ public class CreateFolderFragment extends Fragment {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            Intent intent = new Intent(getContext(), FoldersFragment.class);
+            hideKeyboard(CreateFolderActivity.this);
+            Intent intent = new Intent(CreateFolderActivity.this, BaseActivity.class);
             intent.putExtra("isNoteDeleted", true);
             intent.putExtra("noteTitle", alreadyAvailableFolder.getName());
-            //setResult(RESULT_OK, intent);
-            hideKeyboard(getActivity());
             startActivity(intent);
-            //finish();
+            setResult(RESULT_OK, intent);
+            finish();
         }
     }
 }

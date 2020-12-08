@@ -18,7 +18,9 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:targetApi="q">
-        <activity android:name=".activities.CreateActivity"></activity>
+        <activity android:name=".activities.create.CreateFolderActivity" />
+        <activity android:name=".activities.create.CreateCheckListActivity" />
+        <activity android:name=".activities.create.CreateNoteActivity" />
         <activity android:name=".activities.BaseActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,12 +28,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.PasswordActivity" />
-        <activity android:name=".activities.PatternLockActivity" />
+        <activity android:name=".activities.lock.PasswordActivity" />
+        <activity android:name=".activities.lock.PatternLockActivity" />
         <activity
             android:name=".activities.SettingsActivity"
             android:theme="@style/Theme.AppCompat" />
-        <activity android:name=".activities.PinCodeActivity" />
+        <activity android:name=".activities.lock.PinCodeActivity" />
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"

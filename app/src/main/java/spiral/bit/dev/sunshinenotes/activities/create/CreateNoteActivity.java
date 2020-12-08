@@ -1,4 +1,4 @@
-package spiral.bit.dev.sunshinenotes.fragments;
+package spiral.bit.dev.sunshinenotes.activities.create;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -20,20 +20,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentResultListener;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.preference.PreferenceManager;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
-
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.util.Patterns;
@@ -52,6 +38,17 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -73,6 +70,9 @@ import spiral.bit.dev.sunshinenotes.R;
 import spiral.bit.dev.sunshinenotes.activities.BaseActivity;
 import spiral.bit.dev.sunshinenotes.data.NoteDatabase;
 import spiral.bit.dev.sunshinenotes.data.NoteInFolderDatabase;
+import spiral.bit.dev.sunshinenotes.fragments.CheckListFragment;
+import spiral.bit.dev.sunshinenotes.fragments.NotesFragment;
+import spiral.bit.dev.sunshinenotes.fragments.SettingsFragment;
 import spiral.bit.dev.sunshinenotes.models.Folder;
 import spiral.bit.dev.sunshinenotes.models.NoteInFolder;
 import spiral.bit.dev.sunshinenotes.models.PaintView;
@@ -80,13 +80,11 @@ import spiral.bit.dev.sunshinenotes.models.SimpleNote;
 import spiral.bit.dev.sunshinenotes.other.AlarmReceiver;
 import spiral.bit.dev.sunshinenotes.other.RoomWorker;
 
-import static android.app.Activity.RESULT_OK;
-import static android.content.Context.ALARM_SERVICE;
+import static spiral.bit.dev.sunshinenotes.other.Utils.ADD_NOTE_CODE;
+import static spiral.bit.dev.sunshinenotes.other.Utils.UPDATE_NOTE_CODE;
 
-public class CreateNoteFragment extends Fragment {
+public class CreateNoteActivity extends AppCompatActivity {
 
-    public static final int ADD_NOTE_CODE = 12;
-    public static final int UPDATE_NOTE_CODE = 13;
     public static final int SHOW_NOTES_CODE = 14;
     private static final int REQUEST_CODE_SPEECH = 125;
     private static final int PERMISSION_STORAGE_CODE = 11;
@@ -114,100 +112,68 @@ public class CreateNoteFragment extends Fragment {
     private PaintView paintView;
     private Folder folder;
 
-
     @SuppressLint("CommitPrefEdits")
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.fragment_create_note, container, false);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_create_note);
 
-        getParentFragmentManager().setFragmentResultListener(String.valueOf(UPDATE_NOTE_CODE), this, new FragmentResultListener() {
-            @Override
-            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-                if (requestKey.equals(String.valueOf(UPDATE_NOTE_CODE))) {
-                    alreadyAvailableNoteInFolder = (SimpleNote) bundle.getSerializable("note");
-                    setViewOrUpdateNote(view);
-                } else if (requestKey.equals(REQUEST_CODE_SPEECH)) {
-                    ArrayList<String> result = bundle.getStringArrayList(RecognizerIntent.EXTRA_RESULTS);
-                    StringBuilder builder = new StringBuilder();
-                    for (String item : result) {
-                        String finalItem = item.replace("[]", " ");
-                        builder.append(finalItem);
-                    }
-                    inputNoteText.setText(inputNoteText.getText() + " " + builder.toString());
-//                } else if (requestKey.equals(String.valueOf(CODE_SELECT_IMG))) {
-//                    if (bundle != null) {
-//                        Uri selectedImgUri = getActivity().getIntent().getData();
-//                        if (selectedImgUri != null) {
-//                            try {
-//                                InputStream is = getContext().getContentResolver().openInputStream(selectedImgUri);
-//                                Bitmap bitmap = BitmapFactory.decodeStream(is);
-//                                imageNote.setImageBitmap(bitmap);
-//                                imageNote.setVisibility(View.VISIBLE);
-//                                getView().findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
-//                                selectedImgPath = getPathFromUri(selectedImgUri);
-//                            } catch (Exception e) {
-//                                if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-//                                        getContext(), getString(R.string.error_add_img_toast),
-//                                        Toast.LENGTH_SHORT).show();
-//                            }
-//                        }
-//                    }
-//                }
-                }
-            }
-        });
-        mInterstitialAd = new InterstitialAd(getContext());
+        mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(getString(R.string.admob_interstitial_id));
         mInterstitialAd.loadAd(new AdRequest.Builder().build());
 
         //prefs
-        prefTimesEdited = getContext().getSharedPreferences("timesEditedPref", 0);
-        preferencesSettings = PreferenceManager.getDefaultSharedPreferences(getContext().getApplicationContext());
-        prefChoice = getContext().getSharedPreferences("choice", 0);
+        prefTimesEdited = getSharedPreferences("timesEditedPref", 0);
+        preferencesSettings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        prefChoice = getSharedPreferences("choice", 0);
         editorChoice = prefChoice.edit();
         editorTimes = prefTimesEdited.edit();
 
-        layoutMisc = view.findViewById(R.id.layout_miscellaneous);
+        layoutMisc = findViewById(R.id.layout_miscellaneous);
         bottomSheetBehavior = BottomSheetBehavior.from(layoutMisc);
-        ImageView imageBack = view.findViewById(R.id.image_back);
-        ImageView imgTextStyle = view.findViewById(R.id.image_note_text_style);
+        ImageView imageBack = findViewById(R.id.image_back);
+        ImageView imgTextStyle = findViewById(R.id.image_note_text_style);
         imgTextStyle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showStylePopupMenu(v);
             }
         });
-        inputNoteTitle = view.findViewById(R.id.input_note_title);
-        inputNoteSubTitle = view.findViewById(R.id.input_note_sub_title);
-        inputNoteText = view.findViewById(R.id.input_note);
-        textDateTime = view.findViewById(R.id.text_date_time);
-        viewSubTitleIndicator = view.findViewById(R.id.view_sub_title_indicator);
-        ImageView imgInfo = view.findViewById(R.id.image_info_note);
-        ImageView imgShare = view.findViewById(R.id.image_share);
-        imageNote = view.findViewById(R.id.image_note);
-        textWebUrlRef = view.findViewById(R.id.text_web_ref);
-        layoutWebRef = view.findViewById(R.id.layout_web_ref);
+        inputNoteTitle = findViewById(R.id.input_note_title);
+        inputNoteSubTitle = findViewById(R.id.input_note_sub_title);
+        inputNoteText = findViewById(R.id.input_note);
+        textDateTime = findViewById(R.id.text_date_time);
+        viewSubTitleIndicator = findViewById(R.id.view_sub_title_indicator);
+        ImageView imgInfo = findViewById(R.id.image_info_note);
+        ImageView imgShare = findViewById(R.id.image_share);
+        imageNote = findViewById(R.id.image_note);
+        textWebUrlRef = findViewById(R.id.text_web_ref);
+        layoutWebRef = findViewById(R.id.layout_web_ref);
         textDateTime.setText(new SimpleDateFormat("EEEE, dd, MMMM yyyy HH:mm a", Locale.getDefault())
                 .format(new Date()));
-        imgDraw = view.findViewById(R.id.image_draw);
+        imgDraw = findViewById(R.id.image_draw);
 
-        AdView mAdView = view.findViewById(R.id.banner);
+        AdView mAdView = findViewById(R.id.banner);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
-        if (SettingsFragment.getIsPurchased(getContext())) {
+        if (SettingsFragment.getIsPurchased(CreateNoteActivity.this)) {
             mAdView.setVisibility(View.GONE);
         }
 
-        if (getActivity().getIntent().hasExtra("folder")) {
-            folder = (Folder) getActivity().getIntent().getSerializableExtra("folder");
+        if (getIntent().hasExtra("folder")) {
+            folder = (Folder) getIntent().getSerializableExtra("folder");
+        }
+
+        if (getIntent().hasExtra("setViewOrUpdate")) {
+            alreadyAvailableNoteInFolder = (SimpleNote) getIntent().getSerializableExtra("note");
+            setViewOrUpdateNote();
         }
 
         imageBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                hideKeyboard(getActivity());
-                //onBackPressed();
+                hideKeyboard(CreateNoteActivity.this);
+                onBackPressed();
             }
         });
 
@@ -216,7 +182,7 @@ public class CreateNoteFragment extends Fragment {
             public void onClick(View v) {
                 if (alreadyAvailableNoteInFolder != null) {
                     if (imageNote.getVisibility() == View.VISIBLE || imgDraw.getVisibility() == View.VISIBLE) {
-                        shareDialog(view);
+                        shareDialog();
                     } else {
                         Intent intent = new Intent(android.content.Intent.ACTION_SEND);
                         intent.setType("text/plain");
@@ -229,20 +195,20 @@ public class CreateNoteFragment extends Fragment {
                     }
                 } else {
                     if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            getContext(), getString(R.string.error_toast),
+                            CreateNoteActivity.this, getString(R.string.error_toast),
                             Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        ImageView imgSave = view.findViewById(R.id.image_save);
+        ImageView imgSave = findViewById(R.id.image_save);
         imgSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!SettingsFragment.getIsPurchased(getContext())) {
+                if (!SettingsFragment.getIsPurchased(CreateNoteActivity.this)) {
                     if (mInterstitialAd.isLoaded()) mInterstitialAd.show();
                 }
-                hideKeyboard(getActivity());
+                hideKeyboard(CreateNoteActivity.this);
                 saveNote();
             }
         });
@@ -255,16 +221,16 @@ public class CreateNoteFragment extends Fragment {
                             alreadyAvailableNoteInFolder.getDateTimeEdit(), prefTimesEdited.getInt("timesEdited", 0),
                             alreadyAvailableNoteInFolder.getNoteText().length() +
                                     alreadyAvailableNoteInFolder.getTitle().length() +
-                                    alreadyAvailableNoteInFolder.getSubTitle().length(), view);
+                                    alreadyAvailableNoteInFolder.getSubTitle().length());
                 } else {
                     if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            getContext(), getString(R.string.info_img_error_toast),
+                            CreateNoteActivity.this, getString(R.string.info_img_error_toast),
                             Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        final ImageView imgReadMode = view.findViewById(R.id.image_read_mode);
+        final ImageView imgReadMode = findViewById(R.id.image_read_mode);
         imgReadMode.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
@@ -275,7 +241,7 @@ public class CreateNoteFragment extends Fragment {
                     inputNoteSubTitle.setEnabled(false);
                     inputNoteText.setEnabled(false);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        imgReadMode.setBackground(ContextCompat.getDrawable(getContext(),
+                        imgReadMode.setBackground(ContextCompat.getDrawable(CreateNoteActivity.this,
                                 R.drawable.background_add_btn));
                     }
                 } else {
@@ -284,66 +250,62 @@ public class CreateNoteFragment extends Fragment {
                     inputNoteSubTitle.setEnabled(true);
                     inputNoteText.setEnabled(true);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        imgReadMode.setBackground(ContextCompat.getDrawable(getContext(),
+                        imgReadMode.setBackground(ContextCompat.getDrawable(CreateNoteActivity.this,
                                 R.drawable.background_simple));
                     }
                 }
             }
         });
-
-        view.findViewById(R.id.img_remove_link).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.img_remove_link).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 textWebUrlRef.setText("");
                 layoutWebRef.setVisibility(View.GONE);
             }
         });
-
-        view.findViewById(R.id.img_remove_image).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.img_remove_image).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 imageNote.setImageBitmap(null);
                 imageNote.setVisibility(View.GONE);
-                view.findViewById(R.id.img_remove_image).setVisibility(View.GONE);
+                findViewById(R.id.img_remove_image).setVisibility(View.GONE);
                 selectedImgPath = "";
             }
         });
-
-        view.findViewById(R.id.img_remove_draw).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.img_remove_draw).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (alreadyAvailableNoteInFolder != null) {
                     imgDraw.setImageBitmap(null);
                     imgDraw.setVisibility(View.GONE);
-                    view.findViewById(R.id.img_remove_draw).setVisibility(View.GONE);
+                    findViewById(R.id.img_remove_draw).setVisibility(View.GONE);
                     alreadyAvailableNoteInFolder.setDrawPath("");
                     path = "";
                 } else {
                     imgDraw.setImageBitmap(null);
                     imgDraw.setVisibility(View.GONE);
-                    view.findViewById(R.id.img_remove_draw).setVisibility(View.GONE);
+                    findViewById(R.id.img_remove_draw).setVisibility(View.GONE);
                 }
             }
         });
 
-        initMisc(view);
+        initMisc();
         setSubTitleIndicator();
-        return view;
     }
 
-    private void showInfoNoteDialog(String dateTimeCreated, String dateTimeEdited, int timesEdited, int lengthOfCymbals, final View viewContext) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = LayoutInflater.from(getContext())
+    private void showInfoNoteDialog(String dateTimeCreated, String dateTimeEdited, int timesEdited, int lengthOfCymbals) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
                 .inflate(R.layout.layout_info_about_note,
-                        (ViewGroup) viewContext.findViewById(R.id.layout_info_about_note_container));
+                        (ViewGroup) findViewById(R.id.layout_info_about_note_container));
         builder.setView(view);
         dialogInfoNote = builder.create();
         if (dialogInfoNote.getWindow() != null) {
             dialogInfoNote.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
-        TextView created = view.findViewById(R.id.date_note_created);
-        TextView edited = view.findViewById(R.id.date_note_edit);
-        TextView times = view.findViewById(R.id.date_times_edit);
+        TextView created = findViewById(R.id.date_note_created);
+        TextView edited = findViewById(R.id.date_note_edit);
+        TextView times = findViewById(R.id.date_times_edit);
         TextView cymbalsLength = view.findViewById(R.id.cymbals_in_note);
         created.setText(dateTimeCreated);
         if (dateTimeEdited != null) {
@@ -362,7 +324,7 @@ public class CreateNoteFragment extends Fragment {
         dialogInfoNote.show();
     }
 
-    private void setViewOrUpdateNote(final View viewContext) {
+    private void setViewOrUpdateNote() {
         inputNoteTitle.setText(alreadyAvailableNoteInFolder.getTitle());
         inputNoteSubTitle.setText(alreadyAvailableNoteInFolder.getSubTitle());
         inputNoteText.setText(alreadyAvailableNoteInFolder.getNoteText());
@@ -385,19 +347,19 @@ public class CreateNoteFragment extends Fragment {
         if (alreadyAvailableNoteInFolder.getImagePath() != null && !alreadyAvailableNoteInFolder.getImagePath().trim().isEmpty()) {
             imageNote.setImageBitmap(BitmapFactory.decodeFile(alreadyAvailableNoteInFolder.getImagePath()));
             imageNote.setVisibility(View.VISIBLE);
-            viewContext.findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
+            findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
             selectedImgPath = alreadyAvailableNoteInFolder.getImagePath();
         }
 
         if (alreadyAvailableNoteInFolder.getDrawPath() != null && !alreadyAvailableNoteInFolder.getDrawPath().trim().isEmpty()) {
             try {
-                InputStream is = getContext().getContentResolver().openInputStream(Uri.parse(alreadyAvailableNoteInFolder.getDrawPath()));
+                InputStream is = getContentResolver().openInputStream(Uri.parse(alreadyAvailableNoteInFolder.getDrawPath()));
                 imgDraw.setImageBitmap(BitmapFactory.decodeStream(is));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
             imgDraw.setVisibility(View.VISIBLE);
-            viewContext.findViewById(R.id.img_remove_draw).setVisibility(View.VISIBLE);
+            findViewById(R.id.img_remove_draw).setVisibility(View.VISIBLE);
             path = alreadyAvailableNoteInFolder.getDrawPath();
         }
 
@@ -409,13 +371,13 @@ public class CreateNoteFragment extends Fragment {
 
     private void saveNote() {
         if (inputNoteTitle.getText().toString().trim().isEmpty()) {
-            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(getContext(),
+            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(this,
                     getString(R.string.toast_error_title_empty),
                     Toast.LENGTH_SHORT).show();
             return;
         } else if (inputNoteSubTitle.getText().toString().trim().isEmpty()
                 && inputNoteText.getText().toString().trim().isEmpty()) {
-            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(getContext(),
+            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(this,
                     getString(R.string.toast_error_empty_note),
                     Toast.LENGTH_SHORT).show();
             return;
@@ -469,7 +431,6 @@ public class CreateNoteFragment extends Fragment {
                 simpleNote.setDateTimeEdit(new SimpleDateFormat("EEEE, dd, MMMM yyyy HH:mm a", Locale.getDefault())
                         .format(new Date()));
             }
-
         }
 
         @SuppressLint("StaticFieldLeak")
@@ -477,9 +438,9 @@ public class CreateNoteFragment extends Fragment {
             @Override
             protected Void doInBackground(Void... voids) {
                 if (folder != null) {
-                    NoteInFolderDatabase.getNoteDatabase(getContext().getApplicationContext()).getNoteDAO().insertNote(noteInFolder);
+                    NoteInFolderDatabase.getNoteDatabase(getApplicationContext()).getNoteDAO().insertNote(noteInFolder);
                 } else {
-                    NoteDatabase.getNoteDatabase(getContext().getApplicationContext()).getNoteDAO().insertNote(simpleNote);
+                    NoteDatabase.getNoteDatabase(getApplicationContext()).getNoteDAO().insertNote(simpleNote);
                 }
                 return null;
             }
@@ -487,14 +448,15 @@ public class CreateNoteFragment extends Fragment {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                Bundle result = new Bundle();
-                result.putString(String.valueOf(ADD_NOTE_CODE), "result");
-                hideKeyboard(getActivity());
-                getParentFragmentManager().setFragmentResult(String.valueOf(ADD_NOTE_CODE), result);
+                hideKeyboard(CreateNoteActivity.this);
+                Intent intent = new Intent(CreateNoteActivity.this, BaseActivity.class);
+                startActivityForResult(intent, ADD_NOTE_CODE);
                 NotesFragment notesFragment = new NotesFragment();
-                FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-                fragmentTransaction.replace(R.id.replaced_container, notesFragment)
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.replaced_container, notesFragment)
                         .commit();
+                setResult(RESULT_OK, intent);
+                finish();
             }
         }
         new SaveNoteAsyncTask().execute();
@@ -515,15 +477,44 @@ public class CreateNoteFragment extends Fragment {
                 Uri selectedImgUri = data.getData();
                 if (selectedImgUri != null) {
                     try {
-                        InputStream is = getContext().getContentResolver().openInputStream(selectedImgUri);
+                        InputStream is = getContentResolver().openInputStream(selectedImgUri);
                         Bitmap bitmap = BitmapFactory.decodeStream(is);
                         imageNote.setImageBitmap(bitmap);
                         imageNote.setVisibility(View.VISIBLE);
-                        getView().findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
+                        findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
                         selectedImgPath = getPathFromUri(selectedImgUri);
                     } catch (Exception e) {
                         if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                                getContext(), getString(R.string.error_add_img_toast),
+                                CreateNoteActivity.this, getString(R.string.error_add_img_toast),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        } else if (requestCode == UPDATE_NOTE_CODE && resultCode == RESULT_OK) {
+            alreadyAvailableNoteInFolder = (SimpleNote) getIntent().getSerializableExtra("note");
+            setViewOrUpdateNote();
+        } else if (requestCode == REQUEST_CODE_SPEECH && resultCode == RESULT_OK) {
+            ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            StringBuilder builder = new StringBuilder();
+            for (String item : result) {
+                String finalItem = item.replace("[]", " ");
+                builder.append(finalItem);
+            }
+            inputNoteText.setText(inputNoteText.getText() + " " + builder.toString());
+        } else if (requestCode == CODE_SELECT_IMG && resultCode == RESULT_OK) {
+            if (data != null) {
+                Uri selectedImgUri = data.getData();
+                if (selectedImgUri != null) {
+                    try {
+                        InputStream is = getContentResolver().openInputStream(selectedImgUri);
+                        Bitmap bitmap = BitmapFactory.decodeStream(is);
+                        imageNote.setImageBitmap(bitmap);
+                        imageNote.setVisibility(View.VISIBLE);
+                        findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
+                        selectedImgPath = getPathFromUri(selectedImgUri);
+                    } catch (Exception e) {
+                        if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
+                                CreateNoteActivity.this, getString(R.string.error_add_img_toast),
                                 Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -531,8 +522,8 @@ public class CreateNoteFragment extends Fragment {
         }
     }
 
-    private void initMisc(final View view) {
-        final ImageView attach = view.findViewById(R.id.attach);
+    private void initMisc() {
+        final ImageView attach = findViewById(R.id.attach);
         layoutMisc.findViewById(R.id.attach
         ).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -774,9 +765,9 @@ public class CreateNoteFragment extends Fragment {
         layoutMisc.findViewById(R.id.layout_add_note_voice).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(getContext().getApplicationContext(), Manifest.permission.RECORD_AUDIO)
+                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO)
                         != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(getActivity(), new String[]
+                    ActivityCompat.requestPermissions(CreateNoteActivity.this, new String[]
                                     {Manifest.permission.RECORD_AUDIO},
                             PERMISSION_RECORD_CODE);
                 } else {
@@ -789,9 +780,9 @@ public class CreateNoteFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                if (ContextCompat.checkSelfPermission(getContext().getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
+                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
                         != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(getActivity(), new String[]
+                    ActivityCompat.requestPermissions(CreateNoteActivity.this, new String[]
                                     {Manifest.permission.READ_EXTERNAL_STORAGE},
                             PERMISSION_STORAGE_CODE);
                 } else {
@@ -804,7 +795,7 @@ public class CreateNoteFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                showAddDrawDialog(view);
+                showAddDrawDialog();
             }
         });
 
@@ -812,7 +803,7 @@ public class CreateNoteFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                showAddRefDialog(view);
+                showAddRefDialog();
             }
         });
 
@@ -823,7 +814,7 @@ public class CreateNoteFragment extends Fragment {
                 @Override
                 public void onClick(View view) {
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                    openRemindDialog(view);
+                    openRemindDialog();
                 }
             });
         }
@@ -834,7 +825,7 @@ public class CreateNoteFragment extends Fragment {
                 @Override
                 public void onClick(View view) {
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                    showDeleteNoteDialog(view);
+                    showDeleteNoteDialog();
                 }
             });
         }
@@ -851,11 +842,11 @@ public class CreateNoteFragment extends Fragment {
         startActivityForResult(intent, REQUEST_CODE_SPEECH);
     }
 
-    private void showAddDrawDialog(final View viewContext) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        final View view = LayoutInflater.from(getContext())
+    private void showAddDrawDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final View view = LayoutInflater.from(this)
                 .inflate(R.layout.content_draw,
-                        (ViewGroup) viewContext.findViewById(R.id.content_draw_container));
+                        (ViewGroup) findViewById(R.id.content_draw_container));
         builder.setView(view);
         dialogAddDraw = builder.create();
         if (dialogAddDraw.getWindow() != null) {
@@ -907,13 +898,13 @@ public class CreateNoteFragment extends Fragment {
             public void onClick(View v) {
                 paintView.setDrawingCacheEnabled(true);
                 String imgSaved = MediaStore.Images.Media.insertImage(
-                        getContext().getContentResolver(), paintView.getDrawingCache(),
+                        getContentResolver(), paintView.getDrawingCache(),
                         UUID.randomUUID().toString() + ".png",
                         "drawing"
                 );
                 if (imgSaved != null) {
                     if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            getContext(), R.string.saved,
+                            CreateNoteActivity.this, R.string.saved,
                             Toast.LENGTH_SHORT).show();
                     if (alreadyAvailableNoteInFolder != null) {
                         alreadyAvailableNoteInFolder.setDrawPath(imgSaved);
@@ -921,10 +912,10 @@ public class CreateNoteFragment extends Fragment {
                     }
                     path = imgSaved;
                     imgDraw.setVisibility(View.VISIBLE);
-                    viewContext.findViewById(R.id.img_remove_draw).setVisibility(View.VISIBLE);
+                    findViewById(R.id.img_remove_draw).setVisibility(View.VISIBLE);
                     InputStream is = null;
                     try {
-                        is = getContext().getContentResolver().openInputStream(Uri.parse(imgSaved));
+                        is = getContentResolver().openInputStream(Uri.parse(imgSaved));
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -939,7 +930,7 @@ public class CreateNoteFragment extends Fragment {
     }
 
     private void showPopupMenu(View v) {
-        PopupMenu popupMenu = new PopupMenu(getContext(), v);
+        PopupMenu popupMenu = new PopupMenu(this, v);
         popupMenu.inflate(R.menu.popup_menu);
         popupMenu
                 .setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -968,7 +959,7 @@ public class CreateNoteFragment extends Fragment {
     }
 
     private void showStylePopupMenu(View v) {
-        PopupMenu textStyle = new PopupMenu(getContext(), v);
+        PopupMenu textStyle = new PopupMenu(this, v);
         textStyle.inflate(R.menu.text_style_popup_menu);
         textStyle.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @SuppressLint("NonConstantResourceId")
@@ -1081,9 +1072,9 @@ public class CreateNoteFragment extends Fragment {
     private void setFont(String type) {
         switch (type) {
             case "def": {
-                Typeface typeface = Typeface.createFromAsset(getContext().getAssets(), "fonts/ubuntu_bold.ttf");
-                Typeface typeface2 = Typeface.createFromAsset(getContext().getAssets(), "fonts/ubuntu_medium.ttf");
-                Typeface typeface3 = Typeface.createFromAsset(getContext().getAssets(), "fonts/ubuntu_regular.ttf");
+                Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/ubuntu_bold.ttf");
+                Typeface typeface2 = Typeface.createFromAsset(getAssets(), "fonts/ubuntu_medium.ttf");
+                Typeface typeface3 = Typeface.createFromAsset(getAssets(), "fonts/ubuntu_regular.ttf");
                 inputNoteTitle.setTypeface(typeface);
                 inputNoteSubTitle.setTypeface(typeface2);
                 inputNoteText.setTypeface(typeface3);
@@ -1091,9 +1082,9 @@ public class CreateNoteFragment extends Fragment {
                 break;
             }
             case "comissioner": {
-                Typeface typeface = Typeface.createFromAsset(getContext().getAssets(), "fonts/comm_black.ttf");
-                Typeface typeface2 = Typeface.createFromAsset(getContext().getAssets(), "fonts/comm_medium.ttf");
-                Typeface typeface3 = Typeface.createFromAsset(getContext().getAssets(), "fonts/comm_thin.ttf");
+                Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/comm_black.ttf");
+                Typeface typeface2 = Typeface.createFromAsset(getAssets(), "fonts/comm_medium.ttf");
+                Typeface typeface3 = Typeface.createFromAsset(getAssets(), "fonts/comm_thin.ttf");
                 inputNoteTitle.setTypeface(typeface);
                 inputNoteSubTitle.setTypeface(typeface2);
                 inputNoteText.setTypeface(typeface3);
@@ -1101,9 +1092,9 @@ public class CreateNoteFragment extends Fragment {
                 break;
             }
             case "roboto": {
-                Typeface typeface = Typeface.createFromAsset(getContext().getAssets(), "fonts/robotoslab_black.ttf");
-                Typeface typeface2 = Typeface.createFromAsset(getContext().getAssets(), "fonts/robotoslab_regular.ttf");
-                Typeface typeface3 = Typeface.createFromAsset(getContext().getAssets(), "fonts/robotoslab_thin.ttf");
+                Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/robotoslab_black.ttf");
+                Typeface typeface2 = Typeface.createFromAsset(getAssets(), "fonts/robotoslab_regular.ttf");
+                Typeface typeface3 = Typeface.createFromAsset(getAssets(), "fonts/robotoslab_thin.ttf");
                 inputNoteTitle.setTypeface(typeface);
                 inputNoteSubTitle.setTypeface(typeface2);
                 inputNoteText.setTypeface(typeface3);
@@ -1111,9 +1102,9 @@ public class CreateNoteFragment extends Fragment {
                 break;
             }
             case "sourcecode": {
-                Typeface typeface = Typeface.createFromAsset(getContext().getAssets(), "fonts/sourcecode_black.ttf");
-                Typeface typeface2 = Typeface.createFromAsset(getContext().getAssets(), "fonts/source_regular.ttf");
-                Typeface typeface3 = Typeface.createFromAsset(getContext().getAssets(), "fonts/source_light.ttf");
+                Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/sourcecode_black.ttf");
+                Typeface typeface2 = Typeface.createFromAsset(getAssets(), "fonts/source_regular.ttf");
+                Typeface typeface3 = Typeface.createFromAsset(getAssets(), "fonts/source_light.ttf");
                 inputNoteTitle.setTypeface(typeface);
                 inputNoteSubTitle.setTypeface(typeface2);
                 inputNoteText.setTypeface(typeface3);
@@ -1124,11 +1115,11 @@ public class CreateNoteFragment extends Fragment {
     }
 
 
-    private void openRemindDialog(final View viewContext) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = LayoutInflater.from(getContext())
+    private void openRemindDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
                 .inflate(R.layout.dialog_picker,
-                        (ViewGroup) viewContext.findViewById(R.id.layout_dialog_picker_container));
+                        (ViewGroup) findViewById(R.id.layout_dialog_picker_container));
         builder.setView(view);
         dialogRemind = builder.create();
         if (dialogRemind.getWindow() != null) {
@@ -1146,13 +1137,13 @@ public class CreateNoteFragment extends Fragment {
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View view) {
-                alarmManager = (AlarmManager) getActivity().getSystemService(ALARM_SERVICE);
+                alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
                 final Calendar c = Calendar.getInstance();
-                Intent intent = new Intent(getContext().getApplicationContext(), AlarmReceiver.class);
+                Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
                 intent.putExtra("nameOfNote", alreadyAvailableNoteInFolder.getTitle());
                 c.set(Calendar.HOUR_OF_DAY, timePicker.getHour());
                 c.set(Calendar.MINUTE, timePicker.getMinute());
-                pendingIntent = PendingIntent.getBroadcast(getContext(), 0, intent,
+                pendingIntent = PendingIntent.getBroadcast(CreateNoteActivity.this, 0, intent,
                         PendingIntent.FLAG_UPDATE_CURRENT);
                 alarmManager.set(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
                 dialogRemind.dismiss();
@@ -1161,7 +1152,8 @@ public class CreateNoteFragment extends Fragment {
         dialogRemind.show();
     }
 
-    public boolean myOnKeyDown(int keyCode, KeyEvent keyEvent){
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent keyEvent) {
         if (keyCode == KeyEvent.KEYCODE_MENU) {
             if (preferencesSettings.getBoolean("save_note_on_exit", false)) {
                 keyEvent.startTracking();
@@ -1181,40 +1173,40 @@ public class CreateNoteFragment extends Fragment {
                 return true;
             }
         }
-        return true;
+        return super.onKeyDown(keyCode, keyEvent);
     }
 
-//    @Override
-//    public void onBackPressed() {
-//        if (preferencesSettings.getBoolean("clear_settings", false)) {
-//            SharedPreferences.Editor editor = preferencesSettings.edit();
-//            editor.putBoolean("clear_settings", false);
-//            editor.apply();
-//            openQuitDialog(getView());
-//        } else {
-//            if (prefChoice.getBoolean("choice_is_check", false)) {
-//                String save = prefChoice.getString("choice_is_save", "");
-//                if (save.equals("save")) {
-//                    saveNote();
-//                    Intent intent = new Intent(getContext(), NotesFragment.class);
-//                    intent.putExtra("isFromBackKey", true);
-//                    startActivity(intent);
-//                } else {
-//                    Intent intent = new Intent(getContext(), NotesFragment.class);
-//                    intent.putExtra("isFromBackKey", true);
-//                    startActivity(intent);
-//                }
-//            } else {
-//                openQuitDialog();
-//            }
-//        }
-//    }
+    @Override
+    public void onBackPressed() {
+        if (preferencesSettings.getBoolean("clear_settings", false)) {
+            SharedPreferences.Editor editor = preferencesSettings.edit();
+            editor.putBoolean("clear_settings", false);
+            editor.apply();
+            openQuitDialog();
+        } else {
+            if (prefChoice.getBoolean("choice_is_check", false)) {
+                String save = prefChoice.getString("choice_is_save", "");
+                if (save.equals("save")) {
+                    saveNote();
+                    Intent intent = new Intent(CreateNoteActivity.this, NotesFragment.class);
+                    intent.putExtra("isFromBackKey", true);
+                    startActivity(intent);
+                } else {
+                    Intent intent = new Intent(CreateNoteActivity.this, NotesFragment.class);
+                    intent.putExtra("isFromBackKey", true);
+                    startActivity(intent);
+                }
+            } else {
+                openQuitDialog();
+            }
+        }
+    }
 
-    private void openQuitDialog(final View viewContext) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = LayoutInflater.from(getContext())
+    private void openQuitDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
                 .inflate(R.layout.layout_exit_save_note,
-                        (ViewGroup) viewContext.findViewById(R.id.layout_exit_save_note_container));
+                        (ViewGroup) findViewById(R.id.layout_exit_save_note_container));
         builder.setView(view);
         dialogExitSave = builder.create();
         if (dialogExitSave.getWindow() != null) {
@@ -1237,13 +1229,13 @@ public class CreateNoteFragment extends Fragment {
                 if (saveChoice.isChecked()) {
                     editorChoice.putString("choice_is_save", "save");
                     editorChoice.apply();
-                    Intent intent = new Intent(getContext(), NotesFragment.class);
+                    Intent intent = new Intent(CreateNoteActivity.this, NotesFragment.class);
                     intent.putExtra("isFromBackKey", true);
                     startActivity(intent);
                 } else {
                     editorChoice.putString("choice_is_save", "");
                     editorChoice.apply();
-                    Intent intent = new Intent(getContext(), NotesFragment.class);
+                    Intent intent = new Intent(CreateNoteActivity.this, NotesFragment.class);
                     intent.putExtra("isFromBackKey", true);
                     startActivity(intent);
                 }
@@ -1253,7 +1245,7 @@ public class CreateNoteFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 dialogExitSave.dismiss();
-                Intent intent = new Intent(getContext(), NotesFragment.class);
+                Intent intent = new Intent(CreateNoteActivity.this, NotesFragment.class);
                 intent.putExtra("isFromBackKey", true);
                 startActivity(intent);
             }
@@ -1261,11 +1253,11 @@ public class CreateNoteFragment extends Fragment {
         dialogExitSave.show();
     }
 
-    private void shareDialog(final View viewContext) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = LayoutInflater.from(getContext())
+    private void shareDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
                 .inflate(R.layout.layout_share_note,
-                        (ViewGroup) viewContext.findViewById(R.id.layout_share_note_container));
+                        (ViewGroup) findViewById(R.id.layout_share_note_container));
         builder.setView(view);
         shareDialog = builder.create();
         if (shareDialog.getWindow() != null) {
@@ -1286,14 +1278,14 @@ public class CreateNoteFragment extends Fragment {
                     Bitmap bitmap = ((BitmapDrawable) imageNote.getDrawable()).getBitmap();
                     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-                    String path = MediaStore.Images.Media.insertImage(getContext().getContentResolver(),
+                    String path = MediaStore.Images.Media.insertImage(getContentResolver(),
                             bitmap, "image", null);
                     Uri imageDrawUri = Uri.parse(path);
                     intent.putExtra(Intent.EXTRA_STREAM, imageDrawUri);
                     shareDialog.dismiss();
                     startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
                 } else {
-                    Toast.makeText(getContext(), getString(R.string.no_img_in_note_share_error), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CreateNoteActivity.this, getString(R.string.no_img_in_note_share_error), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -1312,14 +1304,14 @@ public class CreateNoteFragment extends Fragment {
                     Bitmap drawBitmap = ((BitmapDrawable) imgDraw.getDrawable()).getBitmap();
                     ByteArrayOutputStream bytesDraw = new ByteArrayOutputStream();
                     drawBitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytesDraw);
-                    String drawPath = MediaStore.Images.Media.insertImage(getContext().getContentResolver(),
+                    String drawPath = MediaStore.Images.Media.insertImage(getContentResolver(),
                             drawBitmap, "image_draw", null);
                     Uri imageDrawUri = Uri.parse(drawPath);
                     intent.putExtra(Intent.EXTRA_STREAM, imageDrawUri);
                     shareDialog.dismiss();
                     startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
                 } else {
-                    Toast.makeText(getContext(), getString(R.string.no_draw_in_note_share_error), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CreateNoteActivity.this, getString(R.string.no_draw_in_note_share_error), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -1346,11 +1338,11 @@ public class CreateNoteFragment extends Fragment {
         shareDialog.show();
     }
 
-    private void showDeleteNoteDialog(final View viewContext) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = LayoutInflater.from(getContext())
+    private void showDeleteNoteDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
                 .inflate(R.layout.layout_delete_note,
-                        (ViewGroup) viewContext.findViewById(R.id.layout_delete_note_container));
+                        (ViewGroup) findViewById(R.id.layout_delete_note_container));
         builder.setView(view);
         dialogDeleteNote = builder.create();
         if (dialogDeleteNote.getWindow() != null) {
@@ -1378,14 +1370,14 @@ public class CreateNoteFragment extends Fragment {
 
     private void selectImg() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        if (intent.resolveActivity(getContext().getPackageManager()) != null) {
+        if (intent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(intent, CODE_SELECT_IMG);
         }
     }
 
     public String getPathFromUri(Uri uri) {
         String pathToFile;
-        Cursor cursor = getContext().getContentResolver().query(uri, null, null, null, null);
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
         if (cursor == null) {
             pathToFile = uri.getPath();
         } else {
@@ -1406,7 +1398,7 @@ public class CreateNoteFragment extends Fragment {
                 selectImg();
             } else {
                 if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                        getContext(), getString(R.string.error_toast_perm_denied),
+                        CreateNoteActivity.this, getString(R.string.error_toast_perm_denied),
                         Toast.LENGTH_SHORT).show();
             }
         }
@@ -1415,18 +1407,17 @@ public class CreateNoteFragment extends Fragment {
                 enterVoice();
             } else {
                 if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                        getContext(), getString(R.string.toast_error_record_denied),
+                        CreateNoteActivity.this, getString(R.string.toast_error_record_denied),
                         Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    private void showAddRefDialog(final View viewContext) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = LayoutInflater.from(getContext())
+    private void showAddRefDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
                 .inflate(R.layout.layout_add_url,
-                        (ViewGroup) viewContext
-                                .findViewById(R.id.layout_add_url_container));
+                        (ViewGroup) findViewById(R.id.layout_add_url_container));
         builder.setView(view);
         dialogRefUrl = builder.create();
         if (dialogRefUrl.getWindow() != null) {
@@ -1440,11 +1431,11 @@ public class CreateNoteFragment extends Fragment {
             public void onClick(View view) {
                 if (inputRef.getText().toString().trim().isEmpty()) {
                     if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            getContext(), getString(R.string.error_toast_ref_empty),
+                            CreateNoteActivity.this, getString(R.string.error_toast_ref_empty),
                             Toast.LENGTH_SHORT).show();
                 } else if (!Patterns.WEB_URL.matcher(inputRef.getText().toString().trim()).matches()) {
                     if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            getContext(), getString(R.string.error_toast_not_valid_ref),
+                            CreateNoteActivity.this, getString(R.string.error_toast_not_valid_ref),
                             Toast.LENGTH_SHORT).show();
                 } else {
                     textWebUrlRef.setText(inputRef.getText().toString().trim());
@@ -1473,7 +1464,7 @@ public class CreateNoteFragment extends Fragment {
     class DeleteNoteAsyncTask extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... voids) {
-            NoteDatabase.getNoteDatabase(getContext().getApplicationContext()).getNoteDAO().deleteNote(alreadyAvailableNoteInFolder);
+            NoteDatabase.getNoteDatabase(getApplicationContext()).getNoteDAO().deleteNote(alreadyAvailableNoteInFolder);
             PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(RoomWorker.class,
                     23,
                     TimeUnit.HOURS,
@@ -1487,14 +1478,15 @@ public class CreateNoteFragment extends Fragment {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            Bundle result = new Bundle();
-            result.putString("delete", "result");
-            result.putBoolean("isNoteDeleted", true);
-            result.putString("noteTitle", alreadyAvailableNoteInFolder.getTitle());
-            result.putString("noteSubtitle", alreadyAvailableNoteInFolder.getSubTitle());
-            result.putString("noteText", alreadyAvailableNoteInFolder.getNoteText());
-            hideKeyboard(getActivity());
-            getParentFragmentManager().setFragmentResult("requestKey", result);
+            Intent intent = new Intent(CreateNoteActivity.this, BaseActivity.class);
+            intent.putExtra("isNoteDeleted", true);
+            intent.putExtra("noteTitle", alreadyAvailableNoteInFolder.getTitle());
+            intent.putExtra("noteSubtitle", alreadyAvailableNoteInFolder.getSubTitle());
+            intent.putExtra("noteText", alreadyAvailableNoteInFolder.getNoteText());
+            hideKeyboard(CreateNoteActivity.this);
+            startActivity(intent);
+            setResult(RESULT_OK, intent);
+            finish();
         }
     }
 }

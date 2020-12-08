@@ -70,18 +70,6 @@ public class FoldersFragment extends Fragment implements FoldersListener {
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_folders, container, false);
 
-        getParentFragmentManager().setFragmentResultListener("requestKey",
-                this, new FragmentResultListener() {
-                    @Override
-                    public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
-                        if (requestKey.equals(String.valueOf(ADD_NOTE_CODE))) {
-                            getNotes(ADD_NOTE_CODE, false);
-                        } else if (requestKey.equals(String.valueOf(UPDATE_NOTE_CODE))) {
-                            getNotes(UPDATE_NOTE_CODE, false);
-                        }
-                    }
-                });
-
         preferenceSettings = PreferenceManager
                 .getDefaultSharedPreferences(getContext().getApplicationContext());
         SharedPreferences checkedPref = getActivity().getSharedPreferences("check", 0);
@@ -150,6 +138,8 @@ public class FoldersFragment extends Fragment implements FoldersListener {
         });
         return view;
     }
+
+
 
     @Override
     public void onResume() {

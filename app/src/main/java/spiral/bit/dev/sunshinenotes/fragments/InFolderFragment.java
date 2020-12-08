@@ -89,7 +89,7 @@ public class InFolderFragment extends Fragment implements NotesInFolderListener 
                 .getDefaultSharedPreferences(getContext().getApplicationContext());
 
         getParentFragmentManager().setFragmentResultListener("requestKey",
-                this, new FragmentResultListener() {
+                getViewLifecycleOwner(), new FragmentResultListener() {
                     @Override
                     public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle bundle) {
                         if (requestKey.equals(String.valueOf(UPDATE_NOTE_CODE))) {
@@ -178,14 +178,14 @@ public class InFolderFragment extends Fragment implements NotesInFolderListener 
     }
 
     private void onAddBtnClicked() {
-        CreateNoteFragment createNoteFragment = new CreateNoteFragment();
-        Bundle result = new Bundle();
-        result.putSerializable("folder", alreadyAvailableFolder);
-        getParentFragmentManager().setFragmentResult(String.valueOf(ADD_NOTE_CODE), result);
-        createNoteFragment.setArguments(result);
-        FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.replaced_container, createNoteFragment)
-                .commit();
+        //CreateNoteFragment createNoteFragment = new CreateNoteFragment();
+//        Bundle result = new Bundle();
+//        result.putSerializable("folder", alreadyAvailableFolder);
+//        getParentFragmentManager().setFragmentResult(String.valueOf(ADD_NOTE_CODE), result);
+//        createNoteFragment.setArguments(result);
+//        FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
+//        fragmentTransaction.replace(R.id.replaced_container, createNoteFragment)
+//                .commit();
     }
 
     public static void hideKeyboard(Activity activity) {
@@ -199,16 +199,16 @@ public class InFolderFragment extends Fragment implements NotesInFolderListener 
 
     @Override
     public void onNoteClicked(NoteInFolder noteInFolder, int position) {
-        clickedNotePosition = position;
-        CreateNoteFragment createNoteFragment = new CreateNoteFragment();
-        Bundle result = new Bundle();
-        result.putSerializable("note", noteInFolder);
-        result.putSerializable("folder", alreadyAvailableFolder);
-        getParentFragmentManager().setFragmentResult(String.valueOf(UPDATE_NOTE_CODE), result);
-        createNoteFragment.setArguments(result);
-        FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.replaced_container, createNoteFragment)
-                .commit();
+//        clickedNotePosition = position;
+//        CreateNoteFragment createNoteFragment = new CreateNoteFragment();
+//        Bundle result = new Bundle();
+//        result.putSerializable("note", noteInFolder);
+//        result.putSerializable("folder", alreadyAvailableFolder);
+//        getParentFragmentManager().setFragmentResult(String.valueOf(UPDATE_NOTE_CODE), result);
+//        createNoteFragment.setArguments(result);
+//        FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
+//        fragmentTransaction.replace(R.id.replaced_container, createNoteFragment)
+//                .commit();
     }
 
     @Override

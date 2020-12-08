@@ -40,12 +40,15 @@ import java.util.List;
 
 import spiral.bit.dev.sunshinenotes.R;
 import spiral.bit.dev.sunshinenotes.activities.SettingsActivity;
+import spiral.bit.dev.sunshinenotes.activities.create.CreateCheckListActivity;
+import spiral.bit.dev.sunshinenotes.activities.create.CreateNoteActivity;
 import spiral.bit.dev.sunshinenotes.adapter.CheckListAdapter;
 import spiral.bit.dev.sunshinenotes.data.CheckListDatabase;
 import spiral.bit.dev.sunshinenotes.listeners.CheckListsListener;
 import spiral.bit.dev.sunshinenotes.models.CheckList;
 
 import static android.app.Activity.RESULT_OK;
+import static spiral.bit.dev.sunshinenotes.other.Utils.UPDATE_CHECK_LIST_CODE;
 
 public class CheckListFragment extends Fragment implements CheckListsListener {
 
@@ -232,13 +235,9 @@ public class CheckListFragment extends Fragment implements CheckListsListener {
     @Override
     public void onCheckListClicked(CheckList checkList, int position) {
         clickedCheckListPosition = position;
-        CreateCheckListFragment createCheckListFragment = new CreateCheckListFragment();
-        Bundle result = new Bundle();
-        result.putSerializable("checklist", checkList);
-        getParentFragmentManager().setFragmentResult(String.valueOf(UPDATE_NOTE_CODE), result);
-        FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.replaced_container, createCheckListFragment)
-                .commit();
+        Intent intent = new Intent(getContext(), CreateCheckListActivity.class);
+        intent.putExtra("checklist", checkList);
+        startActivityForResult(intent, UPDATE_CHECK_LIST_CODE);
     }
 
     @Override
