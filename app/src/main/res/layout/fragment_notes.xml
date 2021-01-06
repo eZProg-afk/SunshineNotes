@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimary"
+    android:id="@+id/main_back"
     tools:context=".fragments.NotesFragment">
 
     <com.google.android.gms.ads.AdView
@@ -36,11 +37,25 @@
         android:layout_marginStart="@dimen/_15sdp" />
 
     <ImageView
-        android:id="@+id/icon_settings"
+        android:id="@+id/icon_change_back"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginStart="92dp"
         android:layout_marginLeft="85dp"
+        android:layout_marginTop="8dp"
+        android:contentDescription="@string/cd_add_note_icon"
+        android:src="@drawable/ic_change_back"
+        app:layout_constraintStart_toEndOf="@id/label_tv_my_notes"
+        app:layout_constraintTop_toBottomOf="@id/adView"
+        android:visibility="gone"
+        app:tint="@color/colorIcons" />
+
+    <ImageView
+        android:id="@+id/icon_settings"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginLeft="30dp"
         android:layout_marginTop="8dp"
         android:contentDescription="@string/cd_add_note_icon"
         android:src="@drawable/ic_settings"
@@ -128,6 +143,7 @@
         android:layout_height="wrap_content"
         android:textSize="@dimen/_17ssp"
         android:textColor="@color/colorWhite"
+        android:visibility="gone"
         android:gravity="center_vertical"
         android:fontFamily="@font/ubuntu_bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -141,6 +157,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="@dimen/_15ssp"
+        android:visibility="gone"
         android:textColor="@color/colorWhite"
         android:gravity="center"
         android:layout_marginTop="@dimen/_10sdp"
@@ -166,6 +183,10 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="@dimen/_100sdp"
         android:layout_height="2dp" />
+
+    <include
+        layout="@layout/menu_delete"
+        android:visibility="invisible" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

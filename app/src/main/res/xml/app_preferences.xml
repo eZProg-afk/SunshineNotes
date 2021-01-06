@@ -36,28 +36,28 @@
             android:switchTextOn="@string/enabled"
             android:title="@string/save_note_on_exit_label" />
 
-        <SwitchPreference
-            android:defaultValue="false"
-            android:key="theme"
-            android:summaryOff="@string/disabled"
-            android:summaryOn="@string/enabled"
-            android:switchTextOff="@string/disabled"
-            android:switchTextOn="@string/enabled"
-            android:title="@string/dark_theme_label" />
+<!--        <SwitchPreference-->
+<!--            android:defaultValue="false"-->
+<!--            android:key="theme"-->
+<!--            android:summaryOff="@string/disabled"-->
+<!--            android:summaryOn="@string/enabled"-->
+<!--            android:switchTextOff="@string/disabled"-->
+<!--            android:switchTextOn="@string/enabled"-->
+<!--            android:title="@string/dark_theme_label" />-->
 
-        <PreferenceCategory
-            android:key="data_back_up"
-            android:title="@string/data_backup_label">
+<!--        <PreferenceCategory-->
+<!--            android:key="data_back_up"-->
+<!--            android:title="@string/data_backup_label">-->
 
-            <CheckBoxPreference
-                android:title="@string/reserv_copy_label"
-                android:key="reserv_copy"
-                android:defaultValue="false"
-                android:summaryOff="@string/not_completed_label"
-                android:summaryOn="@string/completed_label" />
+<!--            <CheckBoxPreference-->
+<!--                android:title="@string/reserv_copy_label"-->
+<!--                android:key="reserv_copy"-->
+<!--                android:defaultValue="false"-->
+<!--                android:summaryOff="@string/not_completed_label"-->
+<!--                android:summaryOn="@string/completed_label" />-->
 
 
-        </PreferenceCategory>
+<!--        </PreferenceCategory>-->
 
     </PreferenceCategory>
 
@@ -69,12 +69,12 @@
             android:title="@string/settings_rate" />
     </PreferenceCategory>
 
-    <PreferenceCategory
-        android:key="billing"
-        android:title="@string/settings_billing">
-        <Preference
-            android:key="purchase"
-            android:title="@string/settings_purchase" />
-    </PreferenceCategory>
+<!--    <PreferenceCategory-->
+<!--        android:key="billing"-->
+<!--        android:title="@string/settings_billing">-->
+<!--        <Preference-->
+<!--            android:key="purchase"-->
+<!--            android:title="@string/settings_purchase" />-->
+<!--    </PreferenceCategory>-->
 
 </PreferenceScreen>

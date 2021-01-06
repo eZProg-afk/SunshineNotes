@@ -10,7 +10,9 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
@@ -31,7 +33,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,16 +41,26 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-
+import com.shashank.sony.fancytoastlib.FancyToast;
+import com.theartofdev.edmodo.cropper.CropImage;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -57,29 +68,34 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-
+import java.util.concurrent.TimeUnit;
+import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 import spiral.bit.dev.sunshinenotes.R;
-import spiral.bit.dev.sunshinenotes.activities.BaseActivity;
-import spiral.bit.dev.sunshinenotes.adapter.CheckAdapter;
+import spiral.bit.dev.sunshinenotes.activities.other.BaseActivity;
+import spiral.bit.dev.sunshinenotes.adapter.TaskAdapter;
 import spiral.bit.dev.sunshinenotes.data.CheckListDatabase;
-import spiral.bit.dev.sunshinenotes.fragments.CheckListFragment;
-import spiral.bit.dev.sunshinenotes.fragments.SettingsFragment;
+import spiral.bit.dev.sunshinenotes.data.StatisticDatabase;
+import spiral.bit.dev.sunshinenotes.data.trash.TrashCheckListDatabase;
+import spiral.bit.dev.sunshinenotes.databinding.ActivityCreateCheckListBinding;
+import spiral.bit.dev.sunshinenotes.fragments.other.SettingsFragment;
 import spiral.bit.dev.sunshinenotes.models.CheckList;
 import spiral.bit.dev.sunshinenotes.models.Task;
+import spiral.bit.dev.sunshinenotes.models.other.Statistic;
+import spiral.bit.dev.sunshinenotes.models.trash.TrashCheckList;
+import spiral.bit.dev.sunshinenotes.models.trash.TrashTask;
+import spiral.bit.dev.sunshinenotes.other.AdWorker;
 import spiral.bit.dev.sunshinenotes.other.AlarmReceiver;
-
-import static spiral.bit.dev.sunshinenotes.fragments.NotesFragment.REQUEST_CODE_ENABLE;
-import static spiral.bit.dev.sunshinenotes.fragments.NotesFragment.hideKeyboard;
+import static spiral.bit.dev.sunshinenotes.fragments.CheckListFragment.REQUEST_CODE_ENABLE;
 import static spiral.bit.dev.sunshinenotes.other.Utils.ADD_CHECK_LIST_CODE;
+import static spiral.bit.dev.sunshinenotes.other.Utils.CODE_SELECT_IMG;
+import static spiral.bit.dev.sunshinenotes.other.Utils.PERMISSION_RECORD_CODE;
+import static spiral.bit.dev.sunshinenotes.other.Utils.PERMISSION_STORAGE_CODE;
+import static spiral.bit.dev.sunshinenotes.other.Utils.REQUEST_CODE_SPEECH;
+import static spiral.bit.dev.sunshinenotes.other.Utils.SHOW_CODE;
 import static spiral.bit.dev.sunshinenotes.other.Utils.UPDATE_CHECK_LIST_CODE;
+import static spiral.bit.dev.sunshinenotes.other.Utils.hideKeyboard;
 
 public class CreateCheckListActivity extends AppCompatActivity {
-
-    private static final int REQUEST_CODE_SPEECH = 125;
-    private static final int PERMISSION_STORAGE_CODE = 11;
-    public static final int PERMISSION_RECORD_CODE = 111;
-    private static final int CODE_SELECT_IMG = 12;
-    public static final int SHOW_NOTES_CODE = 14;
 
     private EditText inputTaskTitle, inputCheckListTitle;
     private TextView textDateTime;
@@ -95,74 +111,106 @@ public class CreateCheckListActivity extends AppCompatActivity {
     private CheckList alreadyAvailableCheckList;
     private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     private InterstitialAd mInterstitialAd;
+    private ActivityCreateCheckListBinding checkListBinding;
     private AlarmManager alarmManager;
     private PendingIntent pendingIntent;
     private TimePicker timePicker;
     private ArrayList<Task> tasks;
     private RecyclerView recyclerCheckItems;
-    private CheckAdapter adapter;
-    private final int clickedNotePosition = -1;
+    private TaskAdapter adapter;
+    private int clickedNotePosition = -1;
 
     @SuppressLint("CommitPrefEdits")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_check_list);
+        checkListBinding = ActivityCreateCheckListBinding.inflate(getLayoutInflater());
+        final View view = checkListBinding.getRoot();
+        setContentView(view);
 
         tasks = new ArrayList<>();
-        adapter = new CheckAdapter(tasks);
+        adapter = new TaskAdapter(tasks);
+
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId(getString(R.string.admob_interstitial_id));
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+            }
+
+            @Override
+            public void onAdFailedToLoad(LoadAdError adError) {
+            }
+
+            @Override
+            public void onAdOpened() {
+                SharedPreferences.Editor editorPrefSettings = preferencesSettings.edit();
+                editorPrefSettings.putBoolean("time_block_ads", true);
+                editorPrefSettings.apply();
+                OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(AdWorker.class)
+                        .setInitialDelay(15, TimeUnit.MINUTES).build();
+                WorkManager workManager = WorkManager.getInstance(CreateCheckListActivity.this);
+                workManager.enqueue(workRequest);
+            }
+
+            @Override
+            public void onAdClicked() {
+                //Dis ads
+                SharedPreferences.Editor editorPrefSettings = preferencesSettings.edit();
+                editorPrefSettings.putBoolean("time_block_ads", true);
+                editorPrefSettings.apply();
+                OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(AdWorker.class)
+                        .setInitialDelay(15, TimeUnit.MINUTES).build();
+                WorkManager workManager = WorkManager.getInstance(CreateCheckListActivity.this);
+                workManager.enqueue(workRequest);
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+            }
+
+            @Override
+            public void onAdClosed() {
+            }
+        });
+
+        //Prefs
         prefTimesEdited = getSharedPreferences("timesEditedPref", 0);
         preferencesSettings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         prefChoice = getSharedPreferences("choice", 0);
         editorChoice = prefChoice.edit();
         editorTimes = prefTimesEdited.edit();
-        ImageView imageBack = findViewById(R.id.image_back);
-        inputTaskTitle = findViewById(R.id.input_item_title);
-        inputCheckListTitle = findViewById(R.id.input_task_title);
-        textDateTime = findViewById(R.id.check_text_date_time);
-        viewSubTitleIndicator = findViewById(R.id.check_view_sub_title_indicator);
-        ImageView imgInfo = findViewById(R.id.image_info_note);
-        ImageView imgShare = findViewById(R.id.image_share);
-        imageNote = findViewById(R.id.check_list_image);
-        textDateTime.setText(new SimpleDateFormat("EEEE, dd, MMMM yyyy HH:mm a", Locale.getDefault())
-                .format(new Date()));
 
-        layoutMisc = findViewById(R.id.layout_miscellaneous);
-        bottomSheetBehavior = BottomSheetBehavior.from(layoutMisc);
-        recyclerCheckItems = findViewById(R.id.checklist_recycler);
-        recyclerCheckItems.setLayoutManager(new LinearLayoutManager(this));
-        recyclerCheckItems.setAdapter(adapter);
-        recyclerCheckItems.setHasFixedSize(true);
+        //Vars
 
+        inputTaskTitle = checkListBinding.inputItemTitle;
+        inputCheckListTitle = checkListBinding.inputTaskTitle;
+        textDateTime = checkListBinding.checkTextDateTime;
+        viewSubTitleIndicator = checkListBinding.checkViewSubTitleIndicator;
+        imageNote = checkListBinding.imageNote;
+        recyclerCheckItems = checkListBinding.checklistRecycler;
 
-        if (getIntent().getBooleanExtra("setViewOrUpdate", false)) {
-            alreadyAvailableCheckList = (CheckList) getIntent().getSerializableExtra("checklist");
-            setViewOrUpdateNote();
-        }
+        //Listeners
 
-        if (alreadyAvailableCheckList != null) getTasks(SHOW_NOTES_CODE, false);
-
-        AdView mAdView = findViewById(R.id.banner);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
-        if (SettingsFragment.getIsPurchased(CreateCheckListActivity.this)) {
-            mAdView.setVisibility(View.GONE);
-        }
-
-        ImageView addItemBtn = findViewById(R.id.add_item_btn);
-        addItemBtn.setOnClickListener(new View.OnClickListener() {
+        checkListBinding.addItemBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (alreadyAvailableCheckList != null) {
                     saveCheck();
                     inputTaskTitle.setText("");
                 } else {
-                    Toast.makeText(CreateCheckListActivity.this, "Cначала сохраните чек-лист!", Toast.LENGTH_SHORT).show();
+                    FancyToast.makeText(CreateCheckListActivity.this,
+                            "Cначала сохраните чек-лист!",
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.WARNING,
+                            false).show();
                 }
             }
         });
 
-        imageBack.setOnClickListener(new View.OnClickListener() {
+        checkListBinding.imageBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 hideKeyboard(CreateCheckListActivity.this);
@@ -170,7 +218,7 @@ public class CreateCheckListActivity extends AppCompatActivity {
             }
         });
 
-        imgShare.setOnClickListener(new View.OnClickListener() {
+        checkListBinding.imageShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (alreadyAvailableCheckList != null) {
@@ -184,25 +232,29 @@ public class CreateCheckListActivity extends AppCompatActivity {
                         startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
                     }
                 } else {
-                    if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            CreateCheckListActivity.this, getString(R.string.error_toast),
-                            Toast.LENGTH_SHORT).show();
+                    if (preferencesSettings.getBoolean("remove_toasts", false))  FancyToast.makeText(CreateCheckListActivity.this,
+                            getString(R.string.error_toast),
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.ERROR,
+                            false).show();
                 }
             }
         });
 
-        ImageView imgSave = findViewById(R.id.image_save);
-        imgSave.setOnClickListener(new View.OnClickListener() {
+        checkListBinding.imageSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!SettingsFragment.getIsPurchased(CreateCheckListActivity.this))
-                    if (mInterstitialAd.isLoaded()) mInterstitialAd.show();
+                if (!SettingsFragment.getIsPurchased(CreateCheckListActivity.this)) {
+                    if (mInterstitialAd.isLoaded() && !preferencesSettings.getBoolean("time_block_ads", false)) {
+                        mInterstitialAd.show();
+                    }
+                }
                 hideKeyboard(CreateCheckListActivity.this);
                 saveCheckList();
             }
         });
 
-        imgInfo.setOnClickListener(new View.OnClickListener() {
+        checkListBinding.imageInfoNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (alreadyAvailableCheckList != null) {
@@ -210,135 +262,135 @@ public class CreateCheckListActivity extends AppCompatActivity {
                             alreadyAvailableCheckList.getDateTimeEdit(), prefTimesEdited.getInt("timesEdited", 0),
                             alreadyAvailableCheckList.getTitle().length());
                 } else {
-                    if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            CreateCheckListActivity.this, getString(R.string.info_img_error_toast),
-                            Toast.LENGTH_SHORT).show();
+                    if (preferencesSettings.getBoolean("remove_toasts", false))  FancyToast.makeText(CreateCheckListActivity.this,
+                            getString(R.string.info_img_error_toast),
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.ERROR,
+                            false).show();
                 }
             }
         });
 
-        findViewById(R.id.img_remove_image).setOnClickListener(new View.OnClickListener() {
+        checkListBinding.imgRemoveImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 imageNote.setImageBitmap(null);
                 imageNote.setVisibility(View.GONE);
-                view.findViewById(R.id.img_remove_image).setVisibility(View.GONE);
+                checkListBinding.imgRemoveImage.setVisibility(View.GONE);
                 selectedImgPath = "";
             }
         });
 
+        //Initialization
+
+        recyclerCheckItems.setLayoutManager(new LinearLayoutManager(this));
+        recyclerCheckItems.setAdapter(adapter);
+        recyclerCheckItems.setHasFixedSize(true);
+
+        textDateTime.setText(new SimpleDateFormat("EEEE, dd, MMMM yyyy HH:mm a", Locale.getDefault())
+                .format(new Date()));
+        layoutMisc = findViewById(R.id.layout_miscellaneous);
+        bottomSheetBehavior = BottomSheetBehavior.from(layoutMisc);
+
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0,
+                ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                clickedNotePosition = viewHolder.getAdapterPosition();
+                new DeleteCheckAsyncTask().execute(tasks.get(viewHolder.getAdapterPosition()));
+            }
+
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                Typeface typeface = ResourcesCompat.getFont(CreateCheckListActivity.this, R.font.ubuntu_bold);
+                new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                        .addBackgroundColor(ContextCompat.getColor(CreateCheckListActivity.this, R.color.colorDelete))
+                        .addActionIcon(R.drawable.ic_delete_all)
+                        .setSwipeRightLabelColor(R.color.white)
+                        .setSwipeRightLabelTextSize(1, 16)
+                        .setSwipeRightLabelTypeface(typeface)
+                        .addSwipeRightLabel("Проведите для удаления")
+                        .create()
+                        .decorate();
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(recyclerCheckItems);
+
+        if (getIntent().getBooleanExtra("setViewOrUpdate", false)) {
+            alreadyAvailableCheckList = (CheckList) getIntent().getSerializableExtra("checklist");
+            setViewOrUpdateNote();
+        }
+
+        if (alreadyAvailableCheckList != null) getTasks(SHOW_CODE, false);
+        final AdView mAdView = checkListBinding.banner;
+        MobileAds.initialize(CreateCheckListActivity.this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+                if (!preferencesSettings.getBoolean("time_block_ads", false)) {
+                    mAdView.setVisibility(View.VISIBLE);
+                    AdRequest adRequest = new AdRequest.Builder().build();
+                    mAdView.loadAd(adRequest);
+                } else {
+                    mAdView.setVisibility(View.GONE);
+                }
+            }
+        });
+
+        mAdView.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+            }
+
+            @Override
+            public void onAdFailedToLoad(LoadAdError adError) {
+            }
+
+            @Override
+            public void onAdOpened() {
+                SharedPreferences.Editor editorPrefSettings = preferencesSettings.edit();
+                editorPrefSettings.putBoolean("time_block_ads", true);
+                editorPrefSettings.apply();
+                OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(AdWorker.class)
+                        .setInitialDelay(15, TimeUnit.MINUTES).build();
+                WorkManager workManager = WorkManager.getInstance(CreateCheckListActivity.this);
+                workManager.enqueue(workRequest);
+            }
+
+            @Override
+            public void onAdClicked() {
+                //Dis ads
+                SharedPreferences.Editor editorPrefSettings = preferencesSettings.edit();
+                editorPrefSettings.putBoolean("time_block_ads", true);
+                editorPrefSettings.apply();
+                OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(AdWorker.class)
+                        .setInitialDelay(15, TimeUnit.MINUTES).build();
+                WorkManager workManager = WorkManager.getInstance(CreateCheckListActivity.this);
+                workManager.enqueue(workRequest);
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+            }
+
+            @Override
+            public void onAdClosed() {
+            }
+        });
+        if (SettingsFragment.getIsPurchased(CreateCheckListActivity.this))
+            mAdView.setVisibility(View.GONE);
         initMisc();
         setSubTitleIndicator();
     }
 
-    private void saveCheck() {
-        if (inputTaskTitle.getText().toString().trim().isEmpty()) {
-            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(this,
-                    getString(R.string.toast_error_title_empty),
-                    Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        final Task task = new Task();
-        task.setTitle(inputTaskTitle.getText().toString());
-        task.setDateTime(textDateTime.getText().toString());
-        task.setParentId(alreadyAvailableCheckList.getCheckListId());
-        task.setCompleted(alreadyAvailableCheckList.isCompleted());
-
-        @SuppressLint("StaticFieldLeak")
-        class SaveNoteAsyncTask extends AsyncTask<Void, Void, Void> {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                CheckListDatabase.getCheckListDatabase(getApplicationContext())
-                        .getCheckDAO().insertTask(task);
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                getTasks(SHOW_NOTES_CODE, false);
-            }
-        }
-
-        new SaveNoteAsyncTask().execute();
-    }
-
-    @SuppressLint("SetTextI18n")
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && requestCode == ADD_CHECK_LIST_CODE) {
-            getTasks(ADD_CHECK_LIST_CODE, false);
-        } else if (resultCode == RESULT_OK && requestCode == UPDATE_CHECK_LIST_CODE) {
-            if (data != null) {
-                getTasks(UPDATE_CHECK_LIST_CODE, data.getBooleanExtra("isNoteDeleted", false));
-            }
-        } else if (requestCode == REQUEST_CODE_ENABLE && resultCode == RESULT_OK) {
-            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                    this, "Пин-код успешно задан!",
-                    Toast.LENGTH_SHORT).show();
-        } else if (resultCode == RESULT_OK && requestCode == CODE_SELECT_IMG) {
-            if (data != null) {
-                Uri selectedImgUri = data.getData();
-                if (selectedImgUri != null) {
-                    try {
-                        InputStream is = getContentResolver().openInputStream(selectedImgUri);
-                        Bitmap bitmap = BitmapFactory.decodeStream(is);
-                        imageNote.setImageBitmap(bitmap);
-                        imageNote.setVisibility(View.VISIBLE);
-                        findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
-                        selectedImgPath = getPathFromUri(selectedImgUri);
-                    } catch (Exception e) {
-                        if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                                this, getString(R.string.error_add_img_toast),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        } else if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_SPEECH) {
-            ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            StringBuilder builder = new StringBuilder();
-            for (String item : result) {
-                String finalItem = item.replace("[]", " ");
-                builder.append(finalItem);
-            }
-            inputTaskTitle.setText(inputTaskTitle.getText() + " " + builder.toString());
-        }
-    }
-
-    private void getTasks(final int requestCode, final boolean isNoteDeleted) {
-        @SuppressLint("StaticFieldLeak")
-        class GetAllNotesAsyncTask extends AsyncTask<Void, Void, List<Task>> {
-            @Override
-            protected List<Task> doInBackground(Void... voids) {
-                return CheckListDatabase.getCheckListDatabase(getApplicationContext())
-                        .getCheckDAO().getAllTasks(alreadyAvailableCheckList.getCheckListId());
-            }
-
-            @Override
-            protected void onPostExecute(List<Task> checkList) {
-                super.onPostExecute(checkList);
-                if (requestCode == SHOW_NOTES_CODE) {
-                    tasks.addAll(checkList);
-                    adapter.notifyDataSetChanged();
-                } else if (requestCode == ADD_CHECK_LIST_CODE) {
-                    tasks.add(0, checkList.get(0));
-                    adapter.notifyItemInserted(0);
-                    recyclerCheckItems.smoothScrollToPosition(0);
-                } else if (requestCode == UPDATE_CHECK_LIST_CODE) {
-                    tasks.remove(clickedNotePosition);
-                    if (isNoteDeleted) {
-                        adapter.notifyItemRemoved(clickedNotePosition);
-                    } else {
-                        tasks.add(clickedNotePosition, checkList.get(clickedNotePosition));
-                        adapter.notifyItemChanged(clickedNotePosition);
-                    }
-                }
-            }
-        }
-        new GetAllNotesAsyncTask().execute();
-    }
+    //Dialogs
 
     private void showInfoNoteDialog(String dateTimeCreated, String dateTimeEdited,
                                     int timesEdited, int lengthOfCymbals) {
@@ -372,6 +424,322 @@ public class CreateCheckListActivity extends AppCompatActivity {
         dialogInfoNote.show();
     }
 
+    private void openRemindDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
+                .inflate(R.layout.dialog_picker,
+                        (ViewGroup) findViewById(R.id.layout_dialog_picker_container));
+        builder.setView(view);
+        dialogRemind = builder.create();
+        if (dialogRemind.getWindow() != null) {
+            dialogRemind.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        }
+        timePicker = view.findViewById(R.id.timePicker);
+        TextView btnOk = view.findViewById(R.id.btn_ok);
+        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogRemind.dismiss();
+            }
+        });
+        btnOk.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onClick(View view) {
+                alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+                final Calendar c = Calendar.getInstance();
+                Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
+                intent.putExtra("nameOfNote", alreadyAvailableCheckList.getTitle());
+                c.set(Calendar.HOUR_OF_DAY, timePicker.getHour());
+                c.set(Calendar.MINUTE, timePicker.getMinute());
+                pendingIntent = PendingIntent.getBroadcast(CreateCheckListActivity.this, 0, intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT);
+                alarmManager.set(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
+                dialogRemind.dismiss();
+            }
+        });
+        dialogRemind.show();
+    }
+
+    private void openQuitDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
+                .inflate(R.layout.layout_exit_save_note,
+                        (ViewGroup) findViewById(R.id.layout_exit_save_note_container));
+        builder.setView(view);
+        dialogExitSave = builder.create();
+        if (dialogExitSave.getWindow() != null) {
+            dialogExitSave.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        }
+        final CheckBox saveChoice = view.findViewById(R.id.save_choice).findViewById(R.id.choice_save);
+        saveChoice.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if (isChecked) {
+                    editorChoice.putBoolean("choice_is_check", true);
+                    editorChoice.apply();
+                }
+            }
+        });
+        view.findViewById(R.id.text_save_note).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                saveCheckList();
+                if (saveChoice.isChecked()) {
+                    editorChoice.putString("choice_is_save", "save");
+                    editorChoice.apply();
+                    Intent intent = new Intent();
+                    intent.putExtra("isFromBackKey", true);
+                    setResult(RESULT_OK, intent);
+                } else {
+                    editorChoice.putString("choice_is_save", "");
+                    editorChoice.apply();
+                    Intent intent = new Intent();
+                    intent.putExtra("isFromBackKey", true);
+                    setResult(RESULT_OK, intent);
+                }
+                finish();
+            }
+        });
+        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogExitSave.dismiss();
+                Intent intent = new Intent();
+                intent.putExtra("isFromBackKey", true);
+                setResult(RESULT_OK, intent);
+                finish();
+            }
+        });
+        dialogExitSave.show();
+    }
+
+    private void shareDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
+                .inflate(R.layout.layout_share_note,
+                        (ViewGroup) findViewById(R.id.layout_share_note_container));
+        builder.setView(view);
+        shareDialog = builder.create();
+        if (shareDialog.getWindow() != null) {
+            shareDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        }
+        view.findViewById(R.id.text_with_image).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (imageNote.getVisibility() == View.VISIBLE) {
+                    imageNote.buildDrawingCache();
+                    Intent intent = new Intent(android.content.Intent.ACTION_SEND);
+                    intent.setType("image/jpeg");
+                    intent.putExtra(Intent.EXTRA_TITLE, alreadyAvailableCheckList.getTitle());
+                    intent.putExtra(android.content.Intent.EXTRA_TEXT, alreadyAvailableCheckList.getTitle());
+                    Bitmap bitmap = ((BitmapDrawable) imageNote.getDrawable()).getBitmap();
+                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                    String path = MediaStore.Images.Media.insertImage(getContentResolver(),
+                            bitmap, "image", null);
+                    Uri imageDrawUri = Uri.parse(path);
+                    intent.putExtra(Intent.EXTRA_STREAM, imageDrawUri);
+                    shareDialog.dismiss();
+                    startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
+                } else {
+                    FancyToast.makeText(CreateCheckListActivity.this,
+                            getString(R.string.no_img_in_note_share_error),
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.ERROR,
+                            false).show();
+                }
+            }
+        });
+        view.findViewById(R.id.text_with_draw).setVisibility(View.GONE);
+        view.findViewById(R.id.text_only_text).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(android.content.Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_TITLE, alreadyAvailableCheckList.getTitle());
+                intent.putExtra(android.content.Intent.EXTRA_TEXT, alreadyAvailableCheckList.getTitle());
+                shareDialog.dismiss();
+                startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
+            }
+        });
+        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                shareDialog.dismiss();
+            }
+        });
+        shareDialog.show();
+    }
+
+    private void showDeleteNoteDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
+                .inflate(R.layout.layout_delete_note,
+                        (ViewGroup) findViewById(R.id.layout_delete_note_container));
+        builder.setView(view);
+        dialogDeleteNote = builder.create();
+        if (dialogDeleteNote.getWindow() != null) {
+            dialogDeleteNote.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        }
+        view.findViewById(R.id.text_delete_note).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new CreateCheckListActivity.DeleteNoteAsyncTask().execute();
+            }
+        });
+        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogDeleteNote.dismiss();
+            }
+        });
+        dialogDeleteNote.show();
+    }
+
+    //Methods
+
+    private void saveCheck() {
+        if (inputTaskTitle.getText().toString().trim().isEmpty()) {
+            if (preferencesSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(CreateCheckListActivity.this,
+                    getString(R.string.toast_error_title_empty),
+                    FancyToast.LENGTH_LONG,
+                    FancyToast.WARNING,
+                    false).show();
+            return;
+        }
+
+        final Task task = new Task();
+        task.setTitle(inputTaskTitle.getText().toString());
+        task.setDateTime(textDateTime.getText().toString());
+        task.setParentId(alreadyAvailableCheckList.getCheckListId());
+        task.setCompleted(alreadyAvailableCheckList.isCompleted());
+        tasks.add(task);
+
+        @SuppressLint("StaticFieldLeak")
+        class SaveNoteAsyncTask extends AsyncTask<Void, Void, Void> {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                CheckListDatabase.getCheckListDatabase(getApplicationContext())
+                        .getCheckDAO().insertTask(task);
+                Statistic statistic = new Statistic();
+
+                SimpleDateFormat sdf = new SimpleDateFormat("dd MM yyyy");
+                String date = sdf.format(Calendar.getInstance().getTime());
+                statistic.setDateText(date);
+
+                statistic.setTypeText(getString(R.string.task_label));
+                statistic.setItemText(task.getTitle());
+                statistic.setActionText(getString(R.string.added_label));
+                StatisticDatabase.getStatisticDatabase(getApplicationContext())
+                        .getStatisticDAO().insertStatistic(statistic);
+                CheckListDatabase.getCheckListDatabase(getApplicationContext())
+                        .getCheckDAO().getAllTasks(alreadyAvailableCheckList.getCheckListId());
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                adapter.notifyDataSetChanged();
+                hideKeyboard(CreateCheckListActivity.this);
+            }
+        }
+
+        new SaveNoteAsyncTask().execute();
+    }
+
+    @SuppressLint("SetTextI18n")
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                Uri resultUri = result.getUri();
+                InputStream is = null;
+                try {
+                    is = getContentResolver().openInputStream(resultUri);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                Bitmap bitmap = BitmapFactory.decodeStream(is);
+                imageNote.setImageBitmap(bitmap);
+                imageNote.setVisibility(View.VISIBLE);
+                findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
+                selectedImgPath = getPathFromUri(resultUri);
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                Exception error = result.getError();
+                FancyToast.makeText(CreateCheckListActivity.this, error.getMessage(),
+                        FancyToast.LENGTH_SHORT, FancyToast.ERROR, false).show();
+            }
+        }
+        if (requestCode == CODE_SELECT_IMG && resultCode == RESULT_OK) {
+            if (data != null) {
+                Uri selectedImgUri = data.getData();
+                if (selectedImgUri != null) {
+                    CropImage.activity(selectedImgUri)
+                            .start(this);
+                }
+            }
+        } else if (requestCode == SHOW_CODE && resultCode == RESULT_OK) {
+            getTasks(SHOW_CODE, false);
+        } else if (resultCode == RESULT_OK && requestCode == ADD_CHECK_LIST_CODE) {
+            getTasks(ADD_CHECK_LIST_CODE, false);
+        } else if (resultCode == RESULT_OK && requestCode == UPDATE_CHECK_LIST_CODE) {
+            if (data != null) {
+                getTasks(UPDATE_CHECK_LIST_CODE, data.getBooleanExtra("isNoteDeleted", false));
+            }
+        } else if (requestCode == REQUEST_CODE_ENABLE && resultCode == RESULT_OK) {
+            if (preferencesSettings.getBoolean("remove_toasts", false))    FancyToast.makeText(CreateCheckListActivity.this,
+                    "Пин-код успешно задан!",
+                    FancyToast.SUCCESS,
+                    FancyToast.ERROR,
+                    false).show();
+        } else if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_SPEECH) {
+            ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            StringBuilder builder = new StringBuilder();
+            for (String item : result) {
+                String finalItem = item.replace("[]", " ");
+                builder.append(finalItem);
+            }
+            inputTaskTitle.setText(inputTaskTitle.getText() + " " + builder.toString());
+        }
+    }
+
+    private void getTasks(final int requestCode, final boolean isNoteDeleted) {
+        @SuppressLint("StaticFieldLeak")
+        class GetAllNotesAsyncTask extends AsyncTask<Void, Void, List<Task>> {
+            @Override
+            protected List<Task> doInBackground(Void... voids) {
+                return CheckListDatabase.getCheckListDatabase(getApplicationContext())
+                        .getCheckDAO().getAllTasks(alreadyAvailableCheckList.getCheckListId());
+            }
+
+            @Override
+            protected void onPostExecute(List<Task> checkList) {
+                super.onPostExecute(checkList);
+                if (requestCode == SHOW_CODE) {
+                    tasks.addAll(checkList);
+                    adapter.notifyDataSetChanged();
+                } else if (requestCode == ADD_CHECK_LIST_CODE) {
+                    tasks.add(0, checkList.get(0));
+                    adapter.notifyItemInserted(0);
+                    recyclerCheckItems.smoothScrollToPosition(0);
+                } else if (requestCode == UPDATE_CHECK_LIST_CODE) {
+                    tasks.remove(clickedNotePosition);
+                    if (isNoteDeleted) {
+                        adapter.notifyItemRemoved(clickedNotePosition);
+                    } else {
+                        tasks.add(clickedNotePosition, checkList.get(clickedNotePosition));
+                        adapter.notifyItemChanged(clickedNotePosition);
+                    }
+                }
+            }
+        }
+        new GetAllNotesAsyncTask().execute();
+    }
+
     private void setViewOrUpdateNote() {
         inputCheckListTitle.setText(alreadyAvailableCheckList.getTitle());
         textDateTime.setText(alreadyAvailableCheckList.getDateTime());
@@ -388,9 +756,11 @@ public class CreateCheckListActivity extends AppCompatActivity {
 
     private void saveCheckList() {
         if (inputCheckListTitle.getText().toString().trim().isEmpty()) {
-            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(this,
+            if (preferencesSettings.getBoolean("remove_toasts", false))    FancyToast.makeText(CreateCheckListActivity.this,
                     getString(R.string.toast_error_title_empty),
-                    Toast.LENGTH_SHORT).show();
+                    FancyToast.LENGTH_LONG,
+                    FancyToast.WARNING,
+                    false).show();
             return;
         }
 
@@ -420,10 +790,9 @@ public class CreateCheckListActivity extends AppCompatActivity {
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 hideKeyboard(CreateCheckListActivity.this);
-                CheckListFragment checkListFragment = new CheckListFragment();
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.replaced_container, checkListFragment)
-                        .commit();
+                Intent intent = new Intent();
+                setResult(RESULT_OK, intent);
+                finish();
             }
         }
         new SaveNoteAsyncTask().execute();
@@ -732,43 +1101,6 @@ public class CreateCheckListActivity extends AppCompatActivity {
         startActivityForResult(intent, REQUEST_CODE_SPEECH);
     }
 
-    private void openRemindDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this)
-                .inflate(R.layout.dialog_picker,
-                        (ViewGroup) findViewById(R.id.layout_dialog_picker_container));
-        builder.setView(view);
-        dialogRemind = builder.create();
-        if (dialogRemind.getWindow() != null) {
-            dialogRemind.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        }
-        timePicker = view.findViewById(R.id.timePicker);
-        TextView btnOk = view.findViewById(R.id.btn_ok);
-        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialogRemind.dismiss();
-            }
-        });
-        btnOk.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.M)
-            @Override
-            public void onClick(View view) {
-                alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-                final Calendar c = Calendar.getInstance();
-                Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
-                intent.putExtra("nameOfNote", alreadyAvailableCheckList.getTitle());
-                c.set(Calendar.HOUR_OF_DAY, timePicker.getHour());
-                c.set(Calendar.MINUTE, timePicker.getMinute());
-                pendingIntent = PendingIntent.getBroadcast(CreateCheckListActivity.this, 0, intent,
-                        PendingIntent.FLAG_UPDATE_CURRENT);
-                alarmManager.set(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
-                dialogRemind.dismiss();
-            }
-        });
-        dialogRemind.show();
-    }
-
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_MENU) {
@@ -805,148 +1137,17 @@ public class CreateCheckListActivity extends AppCompatActivity {
                 String save = prefChoice.getString("choice_is_save", "");
                 if (save.equals("save")) {
                     saveCheckList();
-                    Intent intent = new Intent(CreateCheckListActivity.this, CheckListFragment.class);
+                    Intent intent = new Intent();
                     intent.putExtra("isFromBackKey", true);
-                    startActivity(intent);
                 } else {
-                    Intent intent = new Intent(CreateCheckListActivity.this, CheckListFragment.class);
+                    Intent intent = new Intent();
                     intent.putExtra("isFromBackKey", true);
-                    startActivity(intent);
                 }
+                finish();
             } else {
                 openQuitDialog();
             }
         }
-    }
-
-    private void openQuitDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this)
-                .inflate(R.layout.layout_exit_save_note,
-                        (ViewGroup) findViewById(R.id.layout_exit_save_note_container));
-        builder.setView(view);
-        dialogExitSave = builder.create();
-        if (dialogExitSave.getWindow() != null) {
-            dialogExitSave.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        }
-        final CheckBox saveChoice = view.findViewById(R.id.save_choice).findViewById(R.id.choice_save);
-        saveChoice.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                if (isChecked) {
-                    editorChoice.putBoolean("choice_is_check", true);
-                    editorChoice.apply();
-                }
-            }
-        });
-        view.findViewById(R.id.text_save_note).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                saveCheckList();
-                if (saveChoice.isChecked()) {
-                    editorChoice.putString("choice_is_save", "save");
-                    editorChoice.apply();
-                    Intent intent = new Intent(CreateCheckListActivity.this, CheckListFragment.class);
-                    intent.putExtra("isFromBackKey", true);
-                    startActivity(intent);
-                } else {
-                    editorChoice.putString("choice_is_save", "");
-                    editorChoice.apply();
-                    Intent intent = new Intent(CreateCheckListActivity.this, CheckListFragment.class);
-                    intent.putExtra("isFromBackKey", true);
-                    startActivity(intent);
-                }
-            }
-        });
-        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialogExitSave.dismiss();
-                Intent intent = new Intent(CreateCheckListActivity.this, CheckListFragment.class);
-                intent.putExtra("isFromBackKey", true);
-                startActivity(intent);
-            }
-        });
-        dialogExitSave.show();
-    }
-
-    private void shareDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this)
-                .inflate(R.layout.layout_share_note,
-                        (ViewGroup) findViewById(R.id.layout_share_note_container));
-        builder.setView(view);
-        shareDialog = builder.create();
-        if (shareDialog.getWindow() != null) {
-            shareDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        }
-        view.findViewById(R.id.text_with_image).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (imageNote.getVisibility() == View.VISIBLE) {
-                    imageNote.buildDrawingCache();
-                    Intent intent = new Intent(android.content.Intent.ACTION_SEND);
-                    intent.setType("image/jpeg");
-                    intent.putExtra(Intent.EXTRA_TITLE, alreadyAvailableCheckList.getTitle());
-                    intent.putExtra(android.content.Intent.EXTRA_TEXT, alreadyAvailableCheckList.getTitle());
-                    Bitmap bitmap = ((BitmapDrawable) imageNote.getDrawable()).getBitmap();
-                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-                    String path = MediaStore.Images.Media.insertImage(getContentResolver(),
-                            bitmap, "image", null);
-                    Uri imageDrawUri = Uri.parse(path);
-                    intent.putExtra(Intent.EXTRA_STREAM, imageDrawUri);
-                    shareDialog.dismiss();
-                    startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
-                } else {
-                    Toast.makeText(CreateCheckListActivity.this, getString(R.string.no_img_in_note_share_error), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        view.findViewById(R.id.text_with_draw).setVisibility(View.GONE);
-        view.findViewById(R.id.text_only_text).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(android.content.Intent.ACTION_SEND);
-                intent.setType("text/plain");
-                intent.putExtra(Intent.EXTRA_TITLE, alreadyAvailableCheckList.getTitle());
-                intent.putExtra(android.content.Intent.EXTRA_TEXT, alreadyAvailableCheckList.getTitle());
-                shareDialog.dismiss();
-                startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
-            }
-        });
-        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                shareDialog.dismiss();
-            }
-        });
-        shareDialog.show();
-    }
-
-    private void showDeleteNoteDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this)
-                .inflate(R.layout.layout_delete_note,
-                        (ViewGroup) findViewById(R.id.layout_delete_note_container));
-        builder.setView(view);
-        dialogDeleteNote = builder.create();
-        if (dialogDeleteNote.getWindow() != null) {
-            dialogDeleteNote.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        }
-        view.findViewById(R.id.text_delete_note).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new CreateCheckListActivity.DeleteNoteAsyncTask().execute();
-            }
-        });
-        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialogDeleteNote.dismiss();
-            }
-        });
-        dialogDeleteNote.show();
     }
 
     private void setSubTitleIndicator() {
@@ -983,30 +1184,75 @@ public class CreateCheckListActivity extends AppCompatActivity {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 selectImg();
             } else {
-                if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                        this, getString(R.string.error_toast_perm_denied),
-                        Toast.LENGTH_SHORT).show();
+                if (preferencesSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(CreateCheckListActivity.this,
+                        getString(R.string.error_toast_perm_denied),
+                        FancyToast.LENGTH_LONG,
+                        FancyToast.ERROR,
+                        false).show();
             }
         }
-        if (requestCode == PERMISSION_RECORD_CODE && grantResults.length > 0) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                enterVoice();
-            } else {
-                if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                        this, getString(R.string.toast_error_record_denied),
-                        Toast.LENGTH_SHORT).show();
-            }
-        }
+//        if (requestCode == PERMISSION_RECORD_CODE && grantResults.length > 0) {
+//            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                enterVoice();
+//            } else {
+//                if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
+//                        this, getString(R.string.toast_error_record_denied),
+//                        Toast.LENGTH_SHORT).show();
+//            }
+//        }
     }
 
     @SuppressLint("StaticFieldLeak")
     class DeleteNoteAsyncTask extends AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... voids) {
+            TrashCheckList trashCheckList = new TrashCheckList();
+            trashCheckList.setTitle(alreadyAvailableCheckList.getTitle());
+            trashCheckList.setImagePath(alreadyAvailableCheckList.getImagePath());
+            trashCheckList.setDateTimeEdit(alreadyAvailableCheckList.getDateTimeEdit());
+            trashCheckList.setDateTime(alreadyAvailableCheckList.getDateTime());
+            trashCheckList.setCompleted(alreadyAvailableCheckList.isCompleted());
+            trashCheckList.setCheckListId(alreadyAvailableCheckList.getCheckListId());
+            trashCheckList.setCheckListColor(alreadyAvailableCheckList.getCheckListColor());
+            Statistic statistic = new Statistic();
+
+            SimpleDateFormat sdf = new SimpleDateFormat("dd MM yyyy");
+            String date = sdf.format(Calendar.getInstance().getTime());
+            statistic.setDateText(date);
+
+            statistic.setTypeText(getString(R.string.check_list_label));
+            statistic.setItemText(alreadyAvailableCheckList.getTitle());
+            statistic.setActionText(getString(R.string.deleted_action));
+            StatisticDatabase.getStatisticDatabase(getApplicationContext())
+                    .getStatisticDAO().insertStatistic(statistic);
+            TrashCheckListDatabase.getNoteDatabase(getApplicationContext())
+                    .getTrashCheckListDAO().insertTrashCheckList(trashCheckList);
+            for (Task task : tasks) {
+                TrashTask trashTask = new TrashTask();
+                trashTask.setCompleted(task.isCompleted());
+                trashTask.setDateTime(task.getDateTime());
+                trashTask.setId(task.getId());
+                trashTask.setParentId(task.getParentId());
+                trashTask.setTitle(task.getTitle());
+                Statistic statistic2 = new Statistic();
+
+                SimpleDateFormat sdf2 = new SimpleDateFormat("dd MM yyyy");
+                String date2 = sdf2.format(Calendar.getInstance().getTime());
+                statistic2.setDateText(date2);
+
+                statistic2.setTypeText(getString(R.string.task_label));
+                statistic2.setItemText(task.getTitle());
+                statistic2.setActionText(getString(R.string.deleted_action));
+                StatisticDatabase.getStatisticDatabase(getApplicationContext())
+                        .getStatisticDAO().insertStatistic(statistic2);
+                TrashCheckListDatabase.getNoteDatabase(getApplicationContext())
+                        .getTrashCheckListDAO().insertTrashTask(trashTask);
+            }
             CheckListDatabase.getCheckListDatabase(getApplicationContext())
                     .getCheckDAO().deleteCheckById(alreadyAvailableCheckList.getCheckListId());
             CheckListDatabase.getCheckListDatabase(getApplicationContext())
                     .getCheckDAO().deleteCheckListById(alreadyAvailableCheckList.getCheckListId());
+
             return null;
         }
 
@@ -1017,9 +1263,27 @@ public class CreateCheckListActivity extends AppCompatActivity {
             Intent intent = new Intent(CreateCheckListActivity.this, BaseActivity.class);
             intent.putExtra("isNoteDeleted", true);
             intent.putExtra("noteTitle", alreadyAvailableCheckList.getTitle());
-            startActivityForResult(intent, ADD_CHECK_LIST_CODE);
+            startActivity(intent);
             setResult(RESULT_OK, intent);
             finish();
+        }
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    class DeleteCheckAsyncTask extends AsyncTask<Task, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Task... tasks) {
+            CheckListDatabase.getCheckListDatabase(getApplicationContext())
+                    .getCheckDAO().deleteCheckItemById(tasks[0].getId());
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            hideKeyboard(CreateCheckListActivity.this);
+            getTasks(UPDATE_CHECK_LIST_CODE, true);
         }
     }
 }

@@ -2,28 +2,28 @@ package spiral.bit.dev.sunshinenotes.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
+
+import net.igenius.customcheckbox.CustomCheckBox;
+
 import java.util.List;
 import spiral.bit.dev.sunshinenotes.R;
 import spiral.bit.dev.sunshinenotes.data.CheckListDatabase;
 import spiral.bit.dev.sunshinenotes.models.Task;
 
-public class CheckAdapter extends RecyclerView.Adapter<CheckAdapter.CheckListViewHolder> {
+public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.CheckListViewHolder> {
 
     private final List<Task> tasks;
     private Context context;
 
-    public CheckAdapter(List<Task> tasks) {
+    public TaskAdapter(List<Task> tasks) {
         this.tasks = tasks;
     }
 
@@ -40,17 +40,17 @@ public class CheckAdapter extends RecyclerView.Adapter<CheckAdapter.CheckListVie
         final Task task = tasks.get(position);
         holder.setNote(task);
         holder.checkBox.setChecked(tasks.get(position).isCompleted());
-        holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        holder.checkBox.setOnCheckedChangeListener(new CustomCheckBox.OnCheckedChangeListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (buttonView.isChecked()) {
+            public void onCheckedChanged(CustomCheckBox checkBox, boolean isChecked) {
+                if (checkBox.isChecked()) {
                     task.setCompleted(true);
                     @SuppressLint("StaticFieldLeak")
                     class SaveNoteAsyncTask extends AsyncTask<Void, Void, Void> {
                         @Override
                         protected Void doInBackground(Void... voids) {
                             CheckListDatabase.getCheckListDatabase(context)
-                                    .getCheckDAO().insertTask(task);
+                                    .getCheckDAO().updateTask(task);
                             return null;
                         }
                     }
@@ -62,7 +62,7 @@ public class CheckAdapter extends RecyclerView.Adapter<CheckAdapter.CheckListVie
                         @Override
                         protected Void doInBackground(Void... voids) {
                             CheckListDatabase.getCheckListDatabase(context)
-                                    .getCheckDAO().insertTask(task);
+                                    .getCheckDAO().updateTask(task);
                             return null;
                         }
                     }
@@ -86,7 +86,7 @@ public class CheckAdapter extends RecyclerView.Adapter<CheckAdapter.CheckListVie
 
         TextView textTitle, textDateTime;
         ConstraintLayout layoutNote;
-        CheckBox checkBox;
+        CustomCheckBox checkBox;
 
         public CheckListViewHolder(@NonNull View itemView) {
             super(itemView);

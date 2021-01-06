@@ -54,7 +54,6 @@
                 android:layout_marginEnd="@dimen/_12sdp"
                 android:layout_marginRight="@dimen/_12sdp"
                 android:layout_marginTop="@dimen/_20sdp"
-                android:background="@drawable/background_done"
                 android:contentDescription="@string/cd_icon_save"
                 android:padding="@dimen/_4sdp"
                 android:src="@drawable/ic_done"
@@ -90,11 +89,40 @@
                 app:layout_constraintTop_toTopOf="@id/image_back"
                 app:tint="@color/colorIcons" />
 
+            <TextView
+                android:id="@+id/check_list_label"
+                android:layout_width="0dp"
+                android:padding="@dimen/_3sdp"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/ubuntu_bold"
+                android:includeFontPadding="false"
+                android:background="@drawable/background_note"
+                android:paddingStart="@dimen/_5sdp"
+                android:layout_marginTop="@dimen/_5sdp"
+                android:paddingRight="@dimen/_5sdp"
+                android:text="@string/check_list_small"
+                android:gravity="center_horizontal"
+                android:textColor="@color/back_for_check_label"
+                android:textSize="@dimen/_15ssp"
+                android:layout_marginBottom="8dp"
+                app:layout_constraintBottom_toBottomOf="@id/image_back"
+                app:layout_constraintEnd_toStartOf="@id/image_info_note"
+                app:layout_constraintStart_toEndOf="@id/image_back"
+                app:layout_constraintTop_toTopOf="@id/image_back"
+                android:layout_marginRight="@dimen/_20sdp"
+                android:layout_marginLeft="@dimen/_20sdp"
+                android:layout_marginStart="@dimen/_20sdp"
+                android:paddingLeft="@dimen/_5sdp"
+                android:layout_marginEnd="@dimen/_20sdp" />
+
             <EditText
                 android:id="@+id/input_task_title"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_marginLeft="@dimen/_20sdp"
+                android:layout_marginRight="@dimen/_20sdp"
+                android:layout_marginEnd="@dimen/_20sdp"
                 android:layout_height="@dimen/_35sdp"
-                android:layout_marginTop="@dimen/_25sdp"
+                android:layout_marginTop="@dimen/_35sdp"
                 android:padding="10dp"
                 android:background="@drawable/background_dialog"
                 android:fontFamily="@font/ubuntu_bold"
@@ -103,12 +131,13 @@
                 android:importantForAutofill="no"
                 android:includeFontPadding="false"
                 android:inputType="text"
-                app:layout_constraintEnd_toStartOf="@id/add_item_btn"
+                app:layout_constraintEnd_toEndOf="@id/add_item_btn"
                 android:textColor="@color/colorWhite"
                 android:textColorHint="@color/colorTextHint"
                 android:textSize="@dimen/_16ssp"
-                app:layout_constraintStart_toEndOf="@id/check_view_sub_title_indicator"
-                app:layout_constraintTop_toBottomOf="@id/image_save" />
+                app:layout_constraintStart_toStartOf="@id/check_view_sub_title_indicator"
+                app:layout_constraintTop_toBottomOf="@id/image_save"
+                android:layout_marginStart="@dimen/_10sdp" />
 
 
             <View
@@ -126,7 +155,7 @@
                 android:id="@+id/input_item_title"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/_35sdp"
-                android:layout_marginTop="@dimen/_25sdp"
+                android:layout_marginTop="@dimen/_10sdp"
                 android:background="@null"
                 android:fontFamily="@font/ubuntu_bold"
                 android:hint="@string/enter_title_of_item"
@@ -178,10 +207,10 @@
                 android:includeFontPadding="false"
                 android:textColor="@color/colorIcons"
                 android:textSize="@dimen/_10ssp"
-                android:layout_marginTop="10dp"
+                android:layout_marginBottom="15dp"
                 app:layout_constraintEnd_toEndOf="@id/input_item_title"
-                app:layout_constraintStart_toStartOf="@id/input_item_title"
-                app:layout_constraintTop_toBottomOf="@id/input_task_title" />
+                app:layout_constraintStart_toStartOf="@id/input_task_title"
+                app:layout_constraintBottom_toTopOf="@id/input_task_title" />
 
             <ImageView
                 android:id="@+id/add_item_btn"
@@ -201,10 +230,10 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="@dimen/_20sdp"
-                android:padding="@dimen/_20sdp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:padding="@dimen/_10sdp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/add_item_btn"
+                app:layout_constraintTop_toBottomOf="@id/image_note"
                 tools:layout_editor_absoluteX="0dp" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

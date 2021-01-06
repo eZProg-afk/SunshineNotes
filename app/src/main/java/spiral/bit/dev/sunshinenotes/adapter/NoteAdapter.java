@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.makeramen.roundedimageview.RoundedImageView;
@@ -28,7 +29,7 @@ import java.util.TimerTask;
 
 import spiral.bit.dev.sunshinenotes.R;
 import spiral.bit.dev.sunshinenotes.listeners.NotesListener;
-import spiral.bit.dev.sunshinenotes.models.NoteInFolder;
+import spiral.bit.dev.sunshinenotes.listeners.SelectListener;
 import spiral.bit.dev.sunshinenotes.models.SimpleNote;
 
 public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder> {
@@ -37,10 +38,12 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     private final NotesListener listener;
     private Timer timer;
     private final List<SimpleNote> notesSource;
+    private SelectListener selectListener;
 
-    public NoteAdapter(List<SimpleNote> noteInFolders, NotesListener listener) {
+    public NoteAdapter(List<SimpleNote> noteInFolders, NotesListener listener, SelectListener selectListener) {
         this.noteInFolders = noteInFolders;
         this.listener = listener;
+        this.selectListener = selectListener;
         notesSource = noteInFolders;
     }
 
@@ -52,19 +55,12 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     }
 
     @Override
-    public void onBindViewHolder(@NonNull NoteViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final NoteViewHolder holder, final int position) {
         holder.setNote(noteInFolders.get(position));
         holder.layoutNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 listener.onNoteClicked(noteInFolders.get(position), position);
-            }
-        });
-        holder.layoutNote.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                listener.onLongNoteClicked(noteInFolders.get(position), position);
-                return true;
             }
         });
     }
@@ -79,12 +75,12 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
         return position;
     }
 
-    static class NoteViewHolder extends RecyclerView.ViewHolder {
+    class NoteViewHolder extends RecyclerView.ViewHolder {
 
-        TextView textTitle, textSubTitle, textDateTime;
+        TextView textTitle, textSubTitle, textDateTime, selectedForDeleteText;
         LinearLayout layoutNote;
-        RoundedImageView imageNote;
-        RoundedImageView imageDraw;
+        ConstraintLayout backDelete;
+        RoundedImageView imageNote, imageDraw, selectForDelete;
         private final Context context;
 
         public NoteViewHolder(@NonNull View itemView) {
@@ -96,26 +92,54 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
             layoutNote = itemView.findViewById(R.id.layout_note);
             imageNote = itemView.findViewById(R.id.image_note);
             imageDraw = itemView.findViewById(R.id.image_draw_note);
+            selectForDelete = itemView.findViewById(R.id.image_select_delete);
+            selectedForDeleteText = itemView.findViewById(R.id.text_selected_delete);
+            backDelete = itemView.findViewById(R.id.back_delete);
         }
 
-        void setNote(SimpleNote simpleNote) {
+        void setNote(final SimpleNote simpleNote) {
             textTitle.setText(simpleNote.getTitle());
             String type = simpleNote.getFontStyle();
             String typeTextSize = simpleNote.getTextSize();
             String typeTextColor = simpleNote.getNoteColor();
-            if (simpleNote.getSubTitle().trim().isEmpty()) {
-                textSubTitle.setVisibility(View.GONE);
-            } else {
-                textSubTitle.setText(simpleNote.getSubTitle());
-            }
+            if (simpleNote.getSubTitle().trim().isEmpty()) textSubTitle.setVisibility(View.GONE);
+            else textSubTitle.setText(simpleNote.getSubTitle());
             textDateTime.setText(simpleNote.getDateTime());
             GradientDrawable gradientDrawable = (GradientDrawable) layoutNote.getBackground();
+
+            if (simpleNote.isDelete()) {
+                selectForDelete.setVisibility(View.VISIBLE);
+                selectedForDeleteText.setVisibility(View.VISIBLE);
+            } else {
+                selectForDelete.setVisibility(View.GONE);
+                selectedForDeleteText.setVisibility(View.GONE);
+            }
+
+            layoutNote.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (simpleNote.isDelete()) {
+                        selectForDelete.setVisibility(View.GONE);
+                        selectedForDeleteText.setVisibility(View.GONE);
+                        simpleNote.setDelete(false);
+                        if (getSelectedNotes().size() == 0) {
+                            selectListener.onItemSelected(false);
+                        }
+                    } else {
+                        selectForDelete.setVisibility(View.VISIBLE);
+                        selectedForDeleteText.setVisibility(View.VISIBLE);
+                        simpleNote.setDelete(true);
+                        selectListener.onItemSelected(true);
+                    }
+                    return true;
+                }
+            });
+
             if (simpleNote.getColor() != null) {
                 gradientDrawable.setColor(Color.parseColor(simpleNote.getColor()));
             } else {
                 gradientDrawable.setColor(Color.parseColor("#333333"));
             }
-
 
             if (type != null) {
                 switch (type) {
@@ -218,6 +242,16 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
         }
     }
 
+    private List<SimpleNote> getSelectedNotes() {
+        List<SimpleNote> selectedSimpleNotes = new ArrayList<>();
+        for (SimpleNote simpleNote : noteInFolders) {
+            if (simpleNote.isDelete()) {
+                selectedSimpleNotes.add(simpleNote);
+            }
+        }
+        return selectedSimpleNotes;
+    }
+
     public void searchNote(final String searchKeyWord) {
         timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -232,13 +266,15 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
                             if (simpleNote.getTitle().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
                                     simpleNote.getSubTitle().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
                                     simpleNote.getNoteText().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
-                                    simpleNote.getImgTag().toLowerCase().contains(searchKeyWord.toLowerCase())) {
+                                    simpleNote.getImgTag().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
+                                    simpleNote.getDateTime().toLowerCase().contains(searchKeyWord.toLowerCase())) {
                                 tempList.add(simpleNote);
                             }
                         } else {
                             if (simpleNote.getTitle().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
                                     simpleNote.getSubTitle().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
-                                    simpleNote.getNoteText().toLowerCase().contains(searchKeyWord.toLowerCase())) {
+                                    simpleNote.getNoteText().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
+                                    simpleNote.getDateTime().toLowerCase().contains(searchKeyWord.toLowerCase())) {
                                 tempList.add(simpleNote);
                             }
                         }

@@ -2,21 +2,21 @@
 
     //ADS
 
-    <!--    <string name="google_play_license" translatable="false">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwsWgfleWZkA10T0vBfjVZ2Nzr8Yp7SKMLzhqq8CKCUcy/IYVdlKf31jT3IzO4tqLYnovStMTOEK3LCHBlJZSzdhKN4dqCjtap6+8MsE9gx4U3fvb+cccxZIIJpK5HM3DbXmuPNqneBEfSy1yVtEAt2KBAfZAOX7hajpmvnNnaGuKapz2eCJNOobuV7goKngWP/QYmYoOW5Hg+et7qwOrd6ZlkMixnbgXs5wjrqTItxrjwcdMPWnDzawSRpcT/ELGNy4p5KUw2HLVUuMdVwXsDg73Udyhx3a0ddO/as9wdG4EJ0uo0J2jsaSe1iFNRjyIyGKM6Cd2WH8oMqp/qzUZPQIDAQAB</string>-->
-    <!--    <string name="product_id" translatable="false">404sunshinenotesdisads_spiral.bit.dev</string>-->
-    <!--    <string name="admob_banner_id" translatable="false">ca-app-pub-7780453585001831/5798151852</string>-->
-    <!--    <string name="admob_create_note_banner_id" translatable="false">ca-app-pub-7780453585001831/1618464155</string>-->
-    <!--    <string name="admob_interstitial_id" translatable="false">ca-app-pub-7780453585001831/5943896594</string>-->
-    <!--    <string name="admob_app_id" translatable="false">ca-app-pub-7780453585001831~8275113711</string>-->
+        <string name="google_play_license" translatable="false">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwsWgfleWZkA10T0vBfjVZ2Nzr8Yp7SKMLzhqq8CKCUcy/IYVdlKf31jT3IzO4tqLYnovStMTOEK3LCHBlJZSzdhKN4dqCjtap6+8MsE9gx4U3fvb+cccxZIIJpK5HM3DbXmuPNqneBEfSy1yVtEAt2KBAfZAOX7hajpmvnNnaGuKapz2eCJNOobuV7goKngWP/QYmYoOW5Hg+et7qwOrd6ZlkMixnbgXs5wjrqTItxrjwcdMPWnDzawSRpcT/ELGNy4p5KUw2HLVUuMdVwXsDg73Udyhx3a0ddO/as9wdG4EJ0uo0J2jsaSe1iFNRjyIyGKM6Cd2WH8oMqp/qzUZPQIDAQAB</string>
+        <string name="product_id" translatable="false">404sunshinenotesdisads_spiral.bit.dev</string>
+        <string name="admob_banner_id" translatable="false">ca-app-pub-7780453585001831/5798151852</string>
+        <string name="admob_create_note_banner_id" translatable="false">ca-app-pub-7780453585001831/1618464155</string>
+        <string name="admob_interstitial_id" translatable="false">ca-app-pub-7780453585001831/5943896594</string>
+        <string name="admob_app_id" translatable="false">ca-app-pub-7780453585001831~8275113711</string>
 
     //ADS FOR TESTING AND UPDATE
 
-    <string name="google_play_license" translatable="false">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwsWgfleWZkA10T0vBfjVZ2Nzr8Yp7SKMLzhqq8CKCUcy/IYVdlKf31jT3IzO4tqLYnovStMTOEK3LCHBlJZSzdhKN4dqCjtap6+8MsE9gx4U3fvb+cccxZIIJpK5HM3DbXmuPNqneBEfSy1yVtEAt2KBAfZAOX7hajpmvnNnaGuKapz2eCJNOobuV7goKngWP/QYmYoOW5Hg+et7qwOrd6ZlkMixnbgXs5wjrqTItxrjwcdMPWnDzawSRpcT/ELGNy4p5KUw2HLVUuMdVwXsDg73Udyhx3a0ddO/as9wdG4EJ0uo0J2jsaSe1iFNRjyIyGKM6Cd2WH8oMqp/qzUZPQIDAQAB</string>
-    <string name="product_id" translatable="false">android.test.purchased</string>
-    <string name="admob_banner_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
-    <string name="admob_create_note_banner_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
-    <string name="admob_interstitial_id" translatable="false">ca-app-pub-3940256099942544/1033173712</string>
-    <string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
+<!--    <string name="google_play_license" translatable="false">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwsWgfleWZkA10T0vBfjVZ2Nzr8Yp7SKMLzhqq8CKCUcy/IYVdlKf31jT3IzO4tqLYnovStMTOEK3LCHBlJZSzdhKN4dqCjtap6+8MsE9gx4U3fvb+cccxZIIJpK5HM3DbXmuPNqneBEfSy1yVtEAt2KBAfZAOX7hajpmvnNnaGuKapz2eCJNOobuV7goKngWP/QYmYoOW5Hg+et7qwOrd6ZlkMixnbgXs5wjrqTItxrjwcdMPWnDzawSRpcT/ELGNy4p5KUw2HLVUuMdVwXsDg73Udyhx3a0ddO/as9wdG4EJ0uo0J2jsaSe1iFNRjyIyGKM6Cd2WH8oMqp/qzUZPQIDAQAB</string>-->
+<!--    <string name="product_id" translatable="false">404sunshinenotesdisads_spiral.bit.dev</string>-->
+<!--    <string name="admob_banner_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>-->
+<!--    <string name="admob_create_note_banner_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>-->
+<!--    <string name="admob_interstitial_id" translatable="false">ca-app-pub-3940256099942544/1033173712</string>-->
+<!--    <string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>-->
 
     //OTHER
 
@@ -139,7 +139,7 @@
     <string name="type_of_lock_label">Какой тип блокировки вы хотите поставить?</string>
     <string name="graphic_key_label">Графический ключ</string>
     <string name="pin_code_label">Пин-код</string>
-    <string name="password_desc_label">Лучше всего придумать пароль, который включает в себя заглавные буквы, латиницу, цифры и символы, а длина которого будет более 8 символов.</string>
+    <string name="password_desc_label">Лучше всего придумать пароль, \n который включает в себя заглавные буквы, \n латиницу, цифры и символы, а длина которого \n будет более 8 символов.</string>
     <string name="add_draw_label">Добавить рисунок</string>
     <string name="save_label">СОХРАНИТЬ</string>
     <string name="big_size_label">Большой размер</string>
@@ -218,16 +218,44 @@
     <string name="search_hint_search_tasks">Поиск по задачам…</string>
     <string name="now_empty_tasks_label">Сейчас здесь нет задач</string>
     <string name="enter_title_of_check_list">Введите название чек-листа</string>
-    <string name="check_list_label">Чек-лист</string>
-    <string name="task_label">Задача</string>
+    <string name="task_label">Моя Задача</string>
     <string name="now_not_folders_label">Сейчас здесь нет папок</string>
     <string name="my_folders_label">Мои папки</string>
     <string name="search_hint_search_folders">Поиск по папкам…</string>
-    <string name="enter_name_of_note">Введите название папки...</string>
+    <string name="enter_name_of_note">Введите название папки…</string>
     <string name="notes_label">ЗАМЕТКИ</string>
     <string name="tasks_label">ЗАДАЧИ</string>
     <string name="folders_label">ПАПКИ</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="trash_auto_delete_label">Корзина автоматически очищается каждые 30 дней.</string>
+    <string name="trash_auto_delete_label">Корзина автоматически очищается каждые 15 дней.</string>
+    <string name="trash_label">Корзина</string>
+    <string name="selected_for_delete_label">Выбрано для\n удаления</string>
+    <string name="delete_ask_label">Удалить?</string>
+    <string name="delete_note_forever_label">Удалить заметку навсегда</string>
+    <string name="restore_note_label">Восстановить из корзины</string>
+    <string name="deleted_note_label">удалённая заметка</string>
+    <string name="note_restored_label">Заметка восстановлена!</string>
+    <string name="desc_label_hint_trash">Здесь появятся заметки,\n когда вы будете их удалять</string>
+    <string name="now_empty_trash">Сейчас тут ничего нет.</string>
+    <string name="or_select_your_photo_label">Или вы можете выбрать \n фото из галереи</string>
+    <string name="select_wallpapers_label">Выберите обои</string>
+    <string name="trash_label_norm">КОРЗИНА</string>
+    <string name="check_list_label">Чек-лист</string>
+    <string name="check_list_small">чек-лист</string>
+    <string name="check_lists_label">Чек-листы</string>
+    <string name="notes_label_trash">Заметки</string>
+    <string name="folders_label_trash">Папки</string>
+    <string name="ads_fuck_label">Надоела реклама?</string>
+    <string name="disable_ads_click_label">Вы всегда можете отключить рекламу на час кликнув на неё!</string>
+    <string name="ok_label">Ок, закрыть</string>
+    <string name="dis_ad_label">Отключить рекламу</string>
+    <string name="buy_disable_ads_label">Или же отключить её навсегда за один доллар :)</string>
+    <string name="not_show_more_label">Больше не показывать</string>
+    <string name="my_statistics_label">Моя статистика</string>
+    <string name="note_in_folder_label">Заметка в папке</string>
+    <string name="added_label">Создано</string>
+    <string name="note_label">Заметка</string>
+    <string name="deleted_action">Удалено</string>
+    <string name="now_not_state_label">Сейчас здесь нет статистики</string>
+    <string name="label_state_desc_hint">Проявляйте активность в \n приложении, чтобы она \n отобразилась!</string>
+    <string name="folder_label">Папка</string>
 </resources>

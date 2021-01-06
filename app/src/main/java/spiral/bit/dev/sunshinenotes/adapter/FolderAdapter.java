@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.makeramen.roundedimageview.RoundedImageView;
@@ -22,6 +23,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import spiral.bit.dev.sunshinenotes.R;
+import spiral.bit.dev.sunshinenotes.listeners.EditListener;
 import spiral.bit.dev.sunshinenotes.listeners.FoldersListener;
 import spiral.bit.dev.sunshinenotes.models.Folder;
 
@@ -29,12 +31,15 @@ public class FolderAdapter extends RecyclerView.Adapter<FolderAdapter.FolderView
 
     private List<Folder> folders;
     private final FoldersListener listener;
+    private EditListener editListener;
     private Timer timer;
     private final List<Folder> foldersSource;
+    private boolean isDeleteModeEnabled = false;
 
-    public FolderAdapter(List<Folder> folders, FoldersListener listener) {
+    public FolderAdapter(List<Folder> folders, FoldersListener listener, EditListener editListener) {
         this.folders = folders;
         this.listener = listener;
+        this.editListener = editListener;
         foldersSource = folders;
     }
 
@@ -46,18 +51,33 @@ public class FolderAdapter extends RecyclerView.Adapter<FolderAdapter.FolderView
     }
 
     @Override
-    public void onBindViewHolder(@NonNull FolderViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final FolderViewHolder holder, final int position) {
         holder.setFolder(folders.get(position));
-        holder.layoutFolder.setOnClickListener(new View.OnClickListener() {
+        holder.imageLabel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 listener.onFolderClicked(folders.get(position), position);
+                if (isDeleteModeEnabled) {
+                    holder.selectForDelete.setVisibility(View.VISIBLE);
+                    holder.selectedForDeleteText.setVisibility(View.VISIBLE);
+                } else {
+                    holder.selectForDelete.setVisibility(View.GONE);
+                    holder.selectedForDeleteText.setVisibility(View.GONE);
+                }
+            }
+        });
+        holder.textTitle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                editListener.onEdit(folders.get(position), position);
             }
         });
         holder.layoutFolder.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 listener.onLongFolderClicked(folders.get(position), position);
+                holder.selectForDelete.setVisibility(View.VISIBLE);
+                holder.selectedForDeleteText.setVisibility(View.VISIBLE);
                 return true;
             }
         });
@@ -68,6 +88,14 @@ public class FolderAdapter extends RecyclerView.Adapter<FolderAdapter.FolderView
         return folders.size();
     }
 
+    public void setOneClickDeleteMode() {
+        isDeleteModeEnabled = true;
+    }
+
+    public void disableOneClickDeleteMode() {
+        isDeleteModeEnabled = false;
+    }
+
     @Override
     public int getItemViewType(int position) {
         return position;
@@ -75,9 +103,10 @@ public class FolderAdapter extends RecyclerView.Adapter<FolderAdapter.FolderView
 
     static class FolderViewHolder extends RecyclerView.ViewHolder {
 
-        TextView textTitle, textSubTitle, textDateTime;
+        TextView textTitle, textSubTitle, textDateTime, selectedForDeleteText;
         LinearLayout layoutFolder;
-        RoundedImageView imageFolder;
+        RoundedImageView imageFolder, imageLabel, selectForDelete;
+        ConstraintLayout backDelete;
 
         public FolderViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -85,7 +114,11 @@ public class FolderAdapter extends RecyclerView.Adapter<FolderAdapter.FolderView
             textDateTime = itemView.findViewById(R.id.folder_date_time);
             textSubTitle = itemView.findViewById(R.id.folder_sub_title);
             imageFolder = itemView.findViewById(R.id.image_folder);
+            imageLabel = itemView.findViewById(R.id.folder_label);
             layoutFolder = itemView.findViewById(R.id.layout_folder);
+            selectForDelete = itemView.findViewById(R.id.image_select_delete);
+            selectedForDeleteText = itemView.findViewById(R.id.text_selected_delete);
+            backDelete = itemView.findViewById(R.id.back_delete);
         }
 
         void setFolder(Folder folder) {
@@ -116,7 +149,8 @@ public class FolderAdapter extends RecyclerView.Adapter<FolderAdapter.FolderView
                     ArrayList<Folder> tempList = new ArrayList<>();
                     for (Folder folder : foldersSource) {
                             if (folder.getName().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
-                                    folder.getSubTitle().toLowerCase().contains(searchKeyWord.toLowerCase())) {
+                                    folder.getSubTitle().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
+                                    folder.getDateTime().toLowerCase().contains(searchKeyWord.toLowerCase())) {
                                 tempList.add(folder);
                             }
                     }

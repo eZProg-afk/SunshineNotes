@@ -9,7 +9,7 @@ import androidx.room.RoomDatabase;
 import spiral.bit.dev.sunshinenotes.models.Task;
 import spiral.bit.dev.sunshinenotes.models.CheckList;
 
-@Database(entities = {CheckList.class, Task.class}, version = 8, exportSchema = false)
+@Database(entities = {CheckList.class, Task.class}, version = 10, exportSchema = false)
 public abstract class CheckListDatabase extends RoomDatabase {
 
     public abstract CheckListDAO getCheckDAO();

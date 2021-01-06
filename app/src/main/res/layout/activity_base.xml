@@ -2,10 +2,11 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:id="@+id/contraint"
     android:layout_height="match_parent"
-    tools:context=".activities.BaseActivity">
+    tools:context=".activities.other.BaseActivity">
 
-    <fragment
+    <androidx.fragment.app.FragmentContainerView
         android:name="spiral.bit.dev.sunshinenotes.fragments.NotesFragment"
         android:id="@+id/replaced_container"
         android:layout_width="match_parent"

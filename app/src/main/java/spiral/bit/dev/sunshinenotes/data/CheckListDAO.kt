@@ -12,11 +12,20 @@ interface CheckListDAO {
     @Query("SELECT * FROM check_items WHERE parent_id = :parentId")
     fun getAllTasks(parentId: Int): List<Task?>?
 
+    @Delete
+    fun deleteMultipleCheckLists(checkList: List<CheckList>)
+
+    @Delete
+    fun deleteMultipleTasks(tasks: List<Task>)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertCheckList(checkList: CheckList?)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertTask(task: Task?)
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    fun updateTask(task: Task?)
 
     @Query("DELETE FROM check_lists WHERE check_list_id = :id")
     fun deleteCheckListById(id: Int)
@@ -29,4 +38,7 @@ interface CheckListDAO {
 
     @Query("DELETE FROM check_items WHERE parent_id = :parentId")
     fun deleteCheckById(parentId: Int)
+
+    @Query("DELETE FROM check_items WHERE id = :id")
+    fun deleteCheckItemById(id: Int)
 }

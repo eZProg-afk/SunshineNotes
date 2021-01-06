@@ -73,7 +73,7 @@
 
     </LinearLayout>
 
-    <spiral.bit.dev.sunshinenotes.models.PaintView
+    <spiral.bit.dev.sunshinenotes.models.other.PaintView
         android:id="@+id/drawing"
         android:layout_width="match_parent"
         android:layout_height="0dp"

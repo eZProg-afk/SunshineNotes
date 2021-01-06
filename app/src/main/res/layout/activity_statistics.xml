@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimaryDark"
+    android:orientation="vertical"
+    tools:context=".activities.other.StatisticsActivity">
+
+ <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="392dp"
+        android:layout_height="42dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        app:adSize="BANNER"
+        app:adUnitId="@string/admob_banner_id"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        app:layout_constraintStart_toStartOf="parent"
+        android:id="@+id/label_tv_my_notes"
+        android:layout_width="230dp"
+        android:layout_marginLeft="@dimen/_15sdp"
+        android:layout_height="35dp"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/ubuntu_bold"
+        android:includeFontPadding="false"
+        android:text="@string/my_statistics_label"
+        android:textColor="@color/colorWhite"
+        android:textSize="@dimen/_20ssp"
+        app:layout_constraintTop_toBottomOf="@id/adView"
+        tools:layout_editor_absoluteX="16dp"
+        android:layout_marginStart="@dimen/_15sdp" />
+
+    <ImageView
+        android:id="@+id/icon_settings"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginTop="8dp"
+        android:contentDescription="@string/cd_add_note_icon"
+        android:src="@drawable/ic_settings"
+        app:layout_constraintStart_toEndOf="@id/label_tv_my_notes"
+        app:layout_constraintTop_toBottomOf="@id/adView"
+        app:tint="@color/colorIcons" />
+
+    <ImageView
+        app:layout_constraintStart_toEndOf="@id/icon_settings"
+        app:layout_constraintTop_toTopOf="@id/icon_settings"
+        android:id="@+id/ic_state_delete"
+        android:layout_width="@dimen/_35sdp"
+        android:layout_height="@dimen/_35sdp"
+        android:layout_marginLeft="@dimen/_10sdp"
+        android:layout_marginStart="@dimen/_10sdp"
+        android:src="@drawable/ic_delete_all"
+        android:visibility="visible"
+        app:tint="@color/colorIcons"
+        android:contentDescription="@string/icon_clear_text_cd" />
+
+    <LinearLayout
+        android:id="@+id/layout_search"
+        android:layout_width="373dp"
+        android:layout_height="47dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/background_search"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/_20sdp"
+        android:paddingEnd="@dimen/_25sdp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/label_tv_my_notes"
+        android:paddingLeft="@dimen/_20sdp"
+        android:paddingRight="@dimen/_25sdp">
+
+        <ImageView
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_marginEnd="@dimen/_12sdp"
+            android:layout_marginRight="@dimen/_12sdp"
+            android:contentDescription="@string/cd_icon_search"
+            android:src="@drawable/ic_search"
+            app:tint="@color/colorSearchIcon" />
+
+        <EditText
+            android:id="@+id/search_edit_text"
+            android:layout_width="230dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/_12sdp"
+            android:layout_marginLeft="@dimen/_12sdp"
+            android:background="@null"
+            android:fontFamily="@font/ubuntu_regular"
+            android:hint="@string/search_hint_search_et"
+            android:imeOptions="actionDone"
+            android:importantForAutofill="no"
+            android:includeFontPadding="false"
+            android:inputType="text"
+            android:textColor="@color/colorWhite"
+            android:textColorHint="@color/colorWhite"
+            android:textSize="@dimen/_13ssp" />
+
+        <ImageView
+            android:id="@+id/ic_clear"
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_marginEnd="@dimen/_40sdp"
+            android:layout_marginRight="@dimen/_40sdp"
+            android:src="@drawable/ic_close"
+            android:visibility="gone"
+            app:tint="@color/colorIcons"
+            android:contentDescription="@string/icon_clear_text_cd" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/statistics_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:layout_marginStart="@dimen/_2sdp"
+        android:layout_marginEnd="@dimen/_2sdp"
+        android:clipToPadding="false"
+        android:paddingStart="0dp"
+        android:paddingLeft="0dp"
+        tools:listitem="@layout/statistic_item"
+        android:paddingEnd="@dimen/_12sdp"
+        android:paddingRight="@dimen/_12sdp"
+        android:paddingBottom="@dimen/_12sdp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/view_empty"
+        app:layout_constraintTop_toBottomOf="@id/layout_search" />
+
+    <TextView
+        android:id="@+id/label_empty"
+        android:text="@string/now_not_state_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/_17ssp"
+        android:textColor="@color/colorWhite"
+        android:visibility="gone"
+        android:gravity="center_vertical"
+        android:fontFamily="@font/ubuntu_bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layout_search"
+        android:layout_marginTop="60dp" />
+
+    <TextView
+        android:id="@+id/label_hint"
+        android:text="@string/label_state_desc_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/_14ssp"
+        android:visibility="gone"
+        android:textColor="@color/colorWhite"
+        android:gravity="center"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:fontFamily="@font/ubuntu_regular"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/label_empty" />
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/now_empty_view"
+        android:layout_width="wrap_content"
+        app:lottie_rawRes="@raw/statistics"
+        android:layout_height="300dp"
+        android:layout_marginTop="@dimen/_10sdp"
+        app:layout_constraintTop_toBottomOf="@id/label_hint"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="20dp"
+        android:visibility="visible" />
+
+    <View
+        android:id="@+id/view_empty"
+        android:layout_width="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="@dimen/_100sdp"
+        android:layout_height="2dp" />
+
+    <include
+        layout="@layout/menu_delete"
+        android:visibility="invisible" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

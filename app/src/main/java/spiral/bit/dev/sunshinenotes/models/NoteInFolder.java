@@ -7,6 +7,8 @@ import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
 import java.io.Serializable;
 
+import static androidx.room.ForeignKey.CASCADE;
+
 @Entity(tableName = "notes_table", foreignKeys = @ForeignKey(entity = Folder.class,
 parentColumns = "folder_id", childColumns = "child_id"))
 public class NoteInFolder implements Serializable {

@@ -1,4 +1,4 @@
-package spiral.bit.dev.sunshinenotes.models;
+package spiral.bit.dev.sunshinenotes.models.other;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

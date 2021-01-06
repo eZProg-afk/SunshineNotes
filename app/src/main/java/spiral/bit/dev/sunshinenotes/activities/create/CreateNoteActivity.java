@@ -2,7 +2,6 @@ package spiral.bit.dev.sunshinenotes.activities.create;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -28,7 +27,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -37,7 +35,6 @@ import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -47,13 +44,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
-import androidx.work.PeriodicWorkRequest;
+import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.shashank.sony.fancytoastlib.FancyToast;
+import com.theartofdev.edmodo.cropper.CropImage;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -67,31 +71,33 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import spiral.bit.dev.sunshinenotes.R;
-import spiral.bit.dev.sunshinenotes.activities.BaseActivity;
+import spiral.bit.dev.sunshinenotes.activities.other.BaseActivity;
 import spiral.bit.dev.sunshinenotes.data.NoteDatabase;
 import spiral.bit.dev.sunshinenotes.data.NoteInFolderDatabase;
-import spiral.bit.dev.sunshinenotes.fragments.CheckListFragment;
-import spiral.bit.dev.sunshinenotes.fragments.NotesFragment;
-import spiral.bit.dev.sunshinenotes.fragments.SettingsFragment;
+import spiral.bit.dev.sunshinenotes.data.StatisticDatabase;
+import spiral.bit.dev.sunshinenotes.data.trash.TrashDatabase;
+import spiral.bit.dev.sunshinenotes.databinding.ActivityCreateNoteBinding;
+import spiral.bit.dev.sunshinenotes.fragments.other.SettingsFragment;
 import spiral.bit.dev.sunshinenotes.models.Folder;
 import spiral.bit.dev.sunshinenotes.models.NoteInFolder;
-import spiral.bit.dev.sunshinenotes.models.PaintView;
 import spiral.bit.dev.sunshinenotes.models.SimpleNote;
+import spiral.bit.dev.sunshinenotes.models.other.PaintView;
+import spiral.bit.dev.sunshinenotes.models.other.Statistic;
+import spiral.bit.dev.sunshinenotes.models.trash.TrashNote;
+import spiral.bit.dev.sunshinenotes.other.AdWorker;
 import spiral.bit.dev.sunshinenotes.other.AlarmReceiver;
-import spiral.bit.dev.sunshinenotes.other.RoomWorker;
 
-import static spiral.bit.dev.sunshinenotes.other.Utils.ADD_NOTE_CODE;
+import static spiral.bit.dev.sunshinenotes.other.Utils.CODE_SELECT_IMG;
+import static spiral.bit.dev.sunshinenotes.other.Utils.PERMISSION_RECORD_CODE;
+import static spiral.bit.dev.sunshinenotes.other.Utils.PERMISSION_STORAGE_CODE;
+import static spiral.bit.dev.sunshinenotes.other.Utils.REQUEST_CODE_SPEECH;
 import static spiral.bit.dev.sunshinenotes.other.Utils.UPDATE_NOTE_CODE;
+import static spiral.bit.dev.sunshinenotes.other.Utils.hideKeyboard;
 
 public class CreateNoteActivity extends AppCompatActivity {
 
-    public static final int SHOW_NOTES_CODE = 14;
-    private static final int REQUEST_CODE_SPEECH = 125;
-    private static final int PERMISSION_STORAGE_CODE = 11;
-    public static final int PERMISSION_RECORD_CODE = 111;
-    private static final int CODE_SELECT_IMG = 12;
-
     private EditText inputNoteTitle, inputNoteSubTitle, inputNoteText;
+    private ActivityCreateNoteBinding noteBinding;
     private TextView textDateTime, textWebUrlRef;
     private View viewSubTitleIndicator;
     private SharedPreferences prefTimesEdited, preferencesSettings, prefChoice;
@@ -102,7 +108,8 @@ public class CreateNoteActivity extends AppCompatActivity {
     private LinearLayout layoutWebRef, layoutMisc;
     private AlertDialog dialogRefUrl, dialogDeleteNote, dialogExitSave,
             dialogInfoNote, dialogRemind, dialogAddDraw, shareDialog;
-    private SimpleNote alreadyAvailableNoteInFolder;
+    private SimpleNote alreadyAvailableNote;
+    private NoteInFolder alreadyAvailableNoteFolder;
     private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     private InterstitialAd mInterstitialAd;
     private AlarmManager alarmManager;
@@ -116,11 +123,55 @@ public class CreateNoteActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_note);
+        noteBinding = ActivityCreateNoteBinding.inflate(getLayoutInflater());
+        View view = noteBinding.getRoot();
+        setContentView(view);
 
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(getString(R.string.admob_interstitial_id));
         mInterstitialAd.loadAd(new AdRequest.Builder().build());
+
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+            }
+
+            @Override
+            public void onAdFailedToLoad(LoadAdError adError) {
+            }
+
+            @Override
+            public void onAdOpened() {
+                SharedPreferences.Editor editorPrefSettings = preferencesSettings.edit();
+                editorPrefSettings.putBoolean("time_block_ads", true);
+                editorPrefSettings.apply();
+                OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(AdWorker.class)
+                        .setInitialDelay(15, TimeUnit.MINUTES).build();
+                WorkManager workManager = WorkManager.getInstance(CreateNoteActivity.this);
+                workManager.enqueue(workRequest);
+            }
+
+            @Override
+            public void onAdClicked() {
+                //Dis ads
+                SharedPreferences.Editor editorPrefSettings = preferencesSettings.edit();
+                editorPrefSettings.putBoolean("time_block_ads", true);
+                editorPrefSettings.apply();
+                OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(AdWorker.class)
+                        .setInitialDelay(15, TimeUnit.MINUTES).build();
+                WorkManager workManager = WorkManager.getInstance(CreateNoteActivity.this);
+                workManager.enqueue(workRequest);
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+            }
+
+            @Override
+            public void onAdClosed() {
+            }
+        });
+
 
         //prefs
         prefTimesEdited = getSharedPreferences("timesEditedPref", 0);
@@ -129,47 +180,95 @@ public class CreateNoteActivity extends AppCompatActivity {
         editorChoice = prefChoice.edit();
         editorTimes = prefTimesEdited.edit();
 
+        //Vars
         layoutMisc = findViewById(R.id.layout_miscellaneous);
         bottomSheetBehavior = BottomSheetBehavior.from(layoutMisc);
-        ImageView imageBack = findViewById(R.id.image_back);
-        ImageView imgTextStyle = findViewById(R.id.image_note_text_style);
-        imgTextStyle.setOnClickListener(new View.OnClickListener() {
+        inputNoteTitle = noteBinding.inputNoteTitle;
+        inputNoteSubTitle = noteBinding.inputNoteSubTitle;
+        inputNoteText = noteBinding.inputNote;
+        textDateTime = noteBinding.textDateTime;
+        viewSubTitleIndicator = noteBinding.viewSubTitleIndicator;
+        imageNote = noteBinding.imageNote;
+        textWebUrlRef = noteBinding.textWebRef;
+        layoutWebRef = noteBinding.layoutWebRef;
+        imgDraw = noteBinding.imageDraw;
+        final AdView mAdView = noteBinding.banner;
+        MobileAds.initialize(CreateNoteActivity.this, new OnInitializationCompleteListener() {
             @Override
-            public void onClick(View v) {
-                showStylePopupMenu(v);
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+                if (!preferencesSettings.getBoolean("time_block_ads", false)) {
+                    mAdView.setVisibility(View.VISIBLE);
+                    AdRequest adRequest = new AdRequest.Builder().build();
+                    mAdView.loadAd(adRequest);
+                } else {
+                    mAdView.setVisibility(View.GONE);
+                }
             }
         });
-        inputNoteTitle = findViewById(R.id.input_note_title);
-        inputNoteSubTitle = findViewById(R.id.input_note_sub_title);
-        inputNoteText = findViewById(R.id.input_note);
-        textDateTime = findViewById(R.id.text_date_time);
-        viewSubTitleIndicator = findViewById(R.id.view_sub_title_indicator);
-        ImageView imgInfo = findViewById(R.id.image_info_note);
-        ImageView imgShare = findViewById(R.id.image_share);
-        imageNote = findViewById(R.id.image_note);
-        textWebUrlRef = findViewById(R.id.text_web_ref);
-        layoutWebRef = findViewById(R.id.layout_web_ref);
+
+        mAdView.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+            }
+
+            @Override
+            public void onAdFailedToLoad(LoadAdError adError) {
+            }
+
+            @Override
+            public void onAdOpened() {
+                SharedPreferences.Editor editorPrefSettings = preferencesSettings.edit();
+                editorPrefSettings.putBoolean("time_block_ads", true);
+                editorPrefSettings.apply();
+                OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(AdWorker.class)
+                        .setInitialDelay(15, TimeUnit.MINUTES).build();
+                WorkManager workManager = WorkManager.getInstance(CreateNoteActivity.this);
+                workManager.enqueue(workRequest);
+            }
+
+            @Override
+            public void onAdClicked() {
+                //Dis ads
+                SharedPreferences.Editor editorPrefSettings = preferencesSettings.edit();
+                editorPrefSettings.putBoolean("time_block_ads", true);
+                editorPrefSettings.apply();
+                OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(AdWorker.class)
+                        .setInitialDelay(15, TimeUnit.MINUTES).build();
+                WorkManager workManager = WorkManager.getInstance(CreateNoteActivity.this);
+                workManager.enqueue(workRequest);
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+            }
+
+            @Override
+            public void onAdClosed() {
+            }
+        });
+
         textDateTime.setText(new SimpleDateFormat("EEEE, dd, MMMM yyyy HH:mm a", Locale.getDefault())
                 .format(new Date()));
-        imgDraw = findViewById(R.id.image_draw);
-
-        AdView mAdView = findViewById(R.id.banner);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
-        if (SettingsFragment.getIsPurchased(CreateNoteActivity.this)) {
+        mAdView.loadAd(new AdRequest.Builder().build());
+        if (SettingsFragment.getIsPurchased(CreateNoteActivity.this))
             mAdView.setVisibility(View.GONE);
-        }
 
-        if (getIntent().hasExtra("folder")) {
+        if (getIntent().hasExtra("folder"))
             folder = (Folder) getIntent().getSerializableExtra("folder");
-        }
 
         if (getIntent().hasExtra("setViewOrUpdate")) {
-            alreadyAvailableNoteInFolder = (SimpleNote) getIntent().getSerializableExtra("note");
+            alreadyAvailableNote = (SimpleNote) getIntent().getSerializableExtra("note");
+            setViewOrUpdateNote();
+        } else if (getIntent().hasExtra("isViewOrUpdate")) {
+            alreadyAvailableNoteFolder = (NoteInFolder) getIntent().getSerializableExtra("note_in_folder");
             setViewOrUpdateNote();
         }
 
-        imageBack.setOnClickListener(new View.OnClickListener() {
+        initMisc();
+        setSubTitleIndicator();
+
+        //Listeners
+        noteBinding.imageBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 hideKeyboard(CreateNoteActivity.this);
@@ -177,61 +276,72 @@ public class CreateNoteActivity extends AppCompatActivity {
             }
         });
 
-        imgShare.setOnClickListener(new View.OnClickListener() {
+        noteBinding.imageNoteTextStyle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (alreadyAvailableNoteInFolder != null) {
+                showStylePopupMenu(v);
+            }
+        });
+
+        noteBinding.imageInfoNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (alreadyAvailableNote != null) {
+                    showInfoNoteDialog(alreadyAvailableNote.getDateTime(),
+                            alreadyAvailableNote.getDateTimeEdit(), prefTimesEdited.getInt("timesEdited", 0),
+                            alreadyAvailableNote.getNoteText().length() +
+                                    alreadyAvailableNote.getTitle().length() +
+                                    alreadyAvailableNote.getSubTitle().length());
+                } else {
+                    if (preferencesSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(CreateNoteActivity.this,
+                            getString(R.string.info_img_error_toast),
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.ERROR,
+                            false).show();
+                }
+            }
+        });
+
+        noteBinding.imageShare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (alreadyAvailableNote != null) {
                     if (imageNote.getVisibility() == View.VISIBLE || imgDraw.getVisibility() == View.VISIBLE) {
                         shareDialog();
                     } else {
                         Intent intent = new Intent(android.content.Intent.ACTION_SEND);
                         intent.setType("text/plain");
-                        intent.putExtra(Intent.EXTRA_TITLE, alreadyAvailableNoteInFolder.getTitle());
-                        intent.putExtra(android.content.Intent.EXTRA_SUBJECT, alreadyAvailableNoteInFolder.getSubTitle());
-                        intent.putExtra(android.content.Intent.EXTRA_TEXT, alreadyAvailableNoteInFolder.getTitle() + "\n" +
-                                alreadyAvailableNoteInFolder.getSubTitle() + "\n" +
-                                alreadyAvailableNoteInFolder.getNoteText());
+                        intent.putExtra(Intent.EXTRA_TITLE, alreadyAvailableNote.getTitle());
+                        intent.putExtra(android.content.Intent.EXTRA_SUBJECT, alreadyAvailableNote.getSubTitle());
+                        intent.putExtra(android.content.Intent.EXTRA_TEXT, alreadyAvailableNote.getTitle() + "\n" +
+                                alreadyAvailableNote.getSubTitle() + "\n" +
+                                alreadyAvailableNote.getNoteText());
                         startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
                     }
                 } else {
-                    if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            CreateNoteActivity.this, getString(R.string.error_toast),
-                            Toast.LENGTH_SHORT).show();
+                    if (preferencesSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(CreateNoteActivity.this,
+                            getString(R.string.error_toast),
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.ERROR,
+                            false).show();
                 }
             }
         });
 
-        ImageView imgSave = findViewById(R.id.image_save);
-        imgSave.setOnClickListener(new View.OnClickListener() {
+        noteBinding.imageSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (!SettingsFragment.getIsPurchased(CreateNoteActivity.this)) {
-                    if (mInterstitialAd.isLoaded()) mInterstitialAd.show();
+                    if (mInterstitialAd.isLoaded() && !preferencesSettings.getBoolean("time_block_ads", false)) {
+                        mInterstitialAd.show();
+                    }
                 }
                 hideKeyboard(CreateNoteActivity.this);
                 saveNote();
             }
         });
 
-        imgInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (alreadyAvailableNoteInFolder != null) {
-                    showInfoNoteDialog(alreadyAvailableNoteInFolder.getDateTime(),
-                            alreadyAvailableNoteInFolder.getDateTimeEdit(), prefTimesEdited.getInt("timesEdited", 0),
-                            alreadyAvailableNoteInFolder.getNoteText().length() +
-                                    alreadyAvailableNoteInFolder.getTitle().length() +
-                                    alreadyAvailableNoteInFolder.getSubTitle().length());
-                } else {
-                    if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            CreateNoteActivity.this, getString(R.string.info_img_error_toast),
-                            Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-        final ImageView imgReadMode = findViewById(R.id.image_read_mode);
-        imgReadMode.setOnClickListener(new View.OnClickListener() {
+        noteBinding.imageReadMode.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onClick(View view) {
@@ -241,7 +351,7 @@ public class CreateNoteActivity extends AppCompatActivity {
                     inputNoteSubTitle.setEnabled(false);
                     inputNoteText.setEnabled(false);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        imgReadMode.setBackground(ContextCompat.getDrawable(CreateNoteActivity.this,
+                        noteBinding.imageReadMode.setBackground(ContextCompat.getDrawable(CreateNoteActivity.this,
                                 R.drawable.background_add_btn));
                     }
                 } else {
@@ -250,20 +360,22 @@ public class CreateNoteActivity extends AppCompatActivity {
                     inputNoteSubTitle.setEnabled(true);
                     inputNoteText.setEnabled(true);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        imgReadMode.setBackground(ContextCompat.getDrawable(CreateNoteActivity.this,
+                        noteBinding.imageReadMode.setBackground(ContextCompat.getDrawable(CreateNoteActivity.this,
                                 R.drawable.background_simple));
                     }
                 }
             }
         });
-        findViewById(R.id.img_remove_link).setOnClickListener(new View.OnClickListener() {
+
+        noteBinding.imgRemoveLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 textWebUrlRef.setText("");
                 layoutWebRef.setVisibility(View.GONE);
             }
         });
-        findViewById(R.id.img_remove_image).setOnClickListener(new View.OnClickListener() {
+
+        noteBinding.imgRemoveImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 imageNote.setImageBitmap(null);
@@ -272,26 +384,26 @@ public class CreateNoteActivity extends AppCompatActivity {
                 selectedImgPath = "";
             }
         });
-        findViewById(R.id.img_remove_draw).setOnClickListener(new View.OnClickListener() {
+
+        noteBinding.imgRemoveDraw.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (alreadyAvailableNoteInFolder != null) {
+                if (alreadyAvailableNote != null) {
                     imgDraw.setImageBitmap(null);
                     imgDraw.setVisibility(View.GONE);
-                    findViewById(R.id.img_remove_draw).setVisibility(View.GONE);
-                    alreadyAvailableNoteInFolder.setDrawPath("");
+                    noteBinding.imgRemoveDraw.setVisibility(View.GONE);
+                    alreadyAvailableNote.setDrawPath("");
                     path = "";
                 } else {
                     imgDraw.setImageBitmap(null);
                     imgDraw.setVisibility(View.GONE);
-                    findViewById(R.id.img_remove_draw).setVisibility(View.GONE);
+                    noteBinding.imgRemoveDraw.setVisibility(View.GONE);
                 }
             }
         });
-
-        initMisc();
-        setSubTitleIndicator();
     }
+
+    //Dialogs
 
     private void showInfoNoteDialog(String dateTimeCreated, String dateTimeEdited, int timesEdited, int lengthOfCymbals) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -303,9 +415,9 @@ public class CreateNoteActivity extends AppCompatActivity {
         if (dialogInfoNote.getWindow() != null) {
             dialogInfoNote.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
-        TextView created = findViewById(R.id.date_note_created);
-        TextView edited = findViewById(R.id.date_note_edit);
-        TextView times = findViewById(R.id.date_times_edit);
+        TextView created = view.findViewById(R.id.date_note_created);
+        TextView edited = view.findViewById(R.id.date_note_edit);
+        TextView times = view.findViewById(R.id.date_times_edit);
         TextView cymbalsLength = view.findViewById(R.id.cymbals_in_note);
         created.setText(dateTimeCreated);
         if (dateTimeEdited != null) {
@@ -324,67 +436,455 @@ public class CreateNoteActivity extends AppCompatActivity {
         dialogInfoNote.show();
     }
 
-    private void setViewOrUpdateNote() {
-        inputNoteTitle.setText(alreadyAvailableNoteInFolder.getTitle());
-        inputNoteSubTitle.setText(alreadyAvailableNoteInFolder.getSubTitle());
-        inputNoteText.setText(alreadyAvailableNoteInFolder.getNoteText());
-        textDateTime.setText(alreadyAvailableNoteInFolder.getDateTime());
-        editorTimes.putInt("timesEdited", prefTimesEdited.getInt("timesEdited", 0) + 1);
-        editorTimes.apply();
-
-        if (alreadyAvailableNoteInFolder != null && alreadyAvailableNoteInFolder.getNoteColor() != null) {
-            setTextColor(alreadyAvailableNoteInFolder.getNoteColor());
+    private void showAddDrawDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final View view = LayoutInflater.from(this)
+                .inflate(R.layout.content_draw,
+                        (ViewGroup) findViewById(R.id.content_draw_container));
+        builder.setView(view);
+        dialogAddDraw = builder.create();
+        if (dialogAddDraw.getWindow() != null) {
+            dialogAddDraw.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
-
-        if (alreadyAvailableNoteInFolder != null && alreadyAvailableNoteInFolder.getFontStyle() != null) {
-            setFont(alreadyAvailableNoteInFolder.getFontStyle());
-        }
-
-        if (alreadyAvailableNoteInFolder != null && alreadyAvailableNoteInFolder.getTextSize() != null) {
-            setSize(alreadyAvailableNoteInFolder.getTextSize());
-        }
-
-        if (alreadyAvailableNoteInFolder.getImagePath() != null && !alreadyAvailableNoteInFolder.getImagePath().trim().isEmpty()) {
-            imageNote.setImageBitmap(BitmapFactory.decodeFile(alreadyAvailableNoteInFolder.getImagePath()));
-            imageNote.setVisibility(View.VISIBLE);
-            findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
-            selectedImgPath = alreadyAvailableNoteInFolder.getImagePath();
-        }
-
-        if (alreadyAvailableNoteInFolder.getDrawPath() != null && !alreadyAvailableNoteInFolder.getDrawPath().trim().isEmpty()) {
-            try {
-                InputStream is = getContentResolver().openInputStream(Uri.parse(alreadyAvailableNoteInFolder.getDrawPath()));
-                imgDraw.setImageBitmap(BitmapFactory.decodeStream(is));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+        final ImageView drawBtn, erase, clearAllCanvasBtn, sizeSelectBtn;
+        TextView save;
+        paintView = view.findViewById(R.id.drawing);
+        drawBtn = view.findViewById(R.id.brush_btn);
+        sizeSelectBtn = view.findViewById(R.id.size_select_btn);
+        erase = view.findViewById(R.id.erase_btn);
+        save = view.findViewById(R.id.save_btn);
+        clearAllCanvasBtn = view.findViewById(R.id.clear_all_canvas_btn);
+        LinearLayout paintLayout = view.findViewById(R.id.paint_colors);
+        currPaint = (ImageView) paintLayout.getChildAt(0);
+        currPaint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (v != null) paintClicked(v);
             }
-            imgDraw.setVisibility(View.VISIBLE);
-            findViewById(R.id.img_remove_draw).setVisibility(View.VISIBLE);
-            path = alreadyAvailableNoteInFolder.getDrawPath();
-        }
+        });
+        drawBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                paintView.setUpDrawing();
+            }
+        });
+        erase.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                paintView.setErase(true);
+                paintView.setBrushSize(paintView.getBrushSize());
+            }
+        });
+        clearAllCanvasBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                paintView.startNew();
+            }
+        });
+        sizeSelectBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showPopupMenu(v);
+            }
+        });
+        save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                paintView.setDrawingCacheEnabled(true);
+                String imgSaved = MediaStore.Images.Media.insertImage(
+                        getContentResolver(), paintView.getDrawingCache(),
+                        UUID.randomUUID().toString() + ".png",
+                        "drawing"
+                );
+                if (imgSaved != null) {
+                    if (preferencesSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(CreateNoteActivity.this,
+                            getString(R.string.saved),
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.SUCCESS,
+                            false).show();
+                    if (alreadyAvailableNote != null) {
+                        alreadyAvailableNote.setDrawPath(imgSaved);
+                        path = alreadyAvailableNote.getDrawPath();
+                    } else if (alreadyAvailableNoteFolder != null) {
+                        alreadyAvailableNoteFolder.setDrawPath(imgSaved);
+                        path = alreadyAvailableNoteFolder.getDrawPath();
+                    }
+                    path = imgSaved;
+                    imgDraw.setVisibility(View.VISIBLE);
+                    findViewById(R.id.img_remove_draw).setVisibility(View.VISIBLE);
+                    InputStream is = null;
+                    try {
+                        is = getContentResolver().openInputStream(Uri.parse(imgSaved));
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    Bitmap bitmap = BitmapFactory.decodeStream(is);
+                    imgDraw.setImageBitmap(bitmap);
+                    dialogAddDraw.dismiss();
+                }
+                paintView.destroyDrawingCache();
+            }
+        });
+        dialogAddDraw.show();
+    }
 
-        if (alreadyAvailableNoteInFolder.getWebLink() != null && !alreadyAvailableNoteInFolder.getWebLink().trim().isEmpty()) {
-            textWebUrlRef.setText(alreadyAvailableNoteInFolder.getWebLink());
-            layoutWebRef.setVisibility(View.VISIBLE);
+    private void openRemindDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
+                .inflate(R.layout.dialog_picker,
+                        (ViewGroup) findViewById(R.id.layout_dialog_picker_container));
+        builder.setView(view);
+        dialogRemind = builder.create();
+        if (dialogRemind.getWindow() != null) {
+            dialogRemind.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        }
+        timePicker = view.findViewById(R.id.timePicker);
+        TextView btnOk = view.findViewById(R.id.btn_ok);
+        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogRemind.dismiss();
+            }
+        });
+        btnOk.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.M)
+            @Override
+            public void onClick(View view) {
+                alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+                final Calendar c = Calendar.getInstance();
+                Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
+                intent.putExtra("nameOfNote", alreadyAvailableNote.getTitle());
+                c.set(Calendar.HOUR_OF_DAY, timePicker.getHour());
+                c.set(Calendar.MINUTE, timePicker.getMinute());
+                pendingIntent = PendingIntent.getBroadcast(CreateNoteActivity.this, 0, intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT);
+                alarmManager.set(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
+                dialogRemind.dismiss();
+            }
+        });
+        dialogRemind.show();
+    }
+
+    private void openQuitDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
+                .inflate(R.layout.layout_exit_save_note,
+                        (ViewGroup) findViewById(R.id.layout_exit_save_note_container));
+        builder.setView(view);
+        dialogExitSave = builder.create();
+        if (dialogExitSave.getWindow() != null) {
+            dialogExitSave.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        }
+        final CheckBox saveChoice = view.findViewById(R.id.save_choice).findViewById(R.id.choice_save);
+        saveChoice.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                if (isChecked) {
+                    editorChoice.putBoolean("choice_is_check", true);
+                    editorChoice.apply();
+                }
+            }
+        });
+        view.findViewById(R.id.text_save_note).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                saveNote();
+                if (saveChoice.isChecked()) {
+                    editorChoice.putString("choice_is_save", "save");
+                    editorChoice.apply();
+                    Intent intent = new Intent();
+                    intent.putExtra("isFromBackKey", true);
+                    setResult(RESULT_OK, intent);
+                } else {
+                    editorChoice.putString("choice_is_save", "");
+                    editorChoice.apply();
+                    Intent intent = new Intent();
+                    intent.putExtra("isFromBackKey", true);
+                    setResult(RESULT_OK, intent);
+                }
+                finish();
+            }
+        });
+        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogExitSave.dismiss();
+                Intent intent = new Intent();
+                intent.putExtra("isFromBackKey", true);
+                setResult(RESULT_OK, intent);
+            }
+        });
+        dialogExitSave.show();
+    }
+
+    private void shareDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
+                .inflate(R.layout.layout_share_note,
+                        (ViewGroup) findViewById(R.id.layout_share_note_container));
+        builder.setView(view);
+        shareDialog = builder.create();
+        if (shareDialog.getWindow() != null) {
+            shareDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        }
+        view.findViewById(R.id.text_with_image).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (imageNote.getVisibility() == View.VISIBLE) {
+                    imageNote.buildDrawingCache();
+                    Intent intent = new Intent(android.content.Intent.ACTION_SEND);
+                    intent.setType("image/jpeg");
+                    intent.putExtra(Intent.EXTRA_TITLE, alreadyAvailableNote.getTitle());
+                    intent.putExtra(android.content.Intent.EXTRA_SUBJECT, alreadyAvailableNote.getSubTitle());
+                    intent.putExtra(android.content.Intent.EXTRA_TEXT, alreadyAvailableNote.getTitle() + "\n" +
+                            alreadyAvailableNote.getSubTitle() + "\n" +
+                            alreadyAvailableNote.getNoteText());
+                    Bitmap bitmap = ((BitmapDrawable) imageNote.getDrawable()).getBitmap();
+                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                    String path = MediaStore.Images.Media.insertImage(getContentResolver(),
+                            bitmap, "image", null);
+                    Uri imageDrawUri = Uri.parse(path);
+                    intent.putExtra(Intent.EXTRA_STREAM, imageDrawUri);
+                    shareDialog.dismiss();
+                    startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
+                } else {
+                    FancyToast.makeText(CreateNoteActivity.this,
+                            getString(R.string.no_img_in_note_share_error),
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.ERROR,
+                            false).show();
+                }
+            }
+        });
+        view.findViewById(R.id.text_with_draw).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (imgDraw.getVisibility() == View.VISIBLE) {
+                    imgDraw.buildDrawingCache();
+                    Intent intent = new Intent(android.content.Intent.ACTION_SEND);
+                    intent.setType("image/jpeg");
+                    intent.putExtra(Intent.EXTRA_TITLE, alreadyAvailableNote.getTitle());
+                    intent.putExtra(android.content.Intent.EXTRA_SUBJECT, alreadyAvailableNote.getSubTitle());
+                    intent.putExtra(android.content.Intent.EXTRA_TEXT, alreadyAvailableNote.getTitle() + "\n" +
+                            alreadyAvailableNote.getSubTitle() + "\n" +
+                            alreadyAvailableNote.getNoteText());
+                    Bitmap drawBitmap = ((BitmapDrawable) imgDraw.getDrawable()).getBitmap();
+                    ByteArrayOutputStream bytesDraw = new ByteArrayOutputStream();
+                    drawBitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytesDraw);
+                    String drawPath = MediaStore.Images.Media.insertImage(getContentResolver(),
+                            drawBitmap, "image_draw", null);
+                    Uri imageDrawUri = Uri.parse(drawPath);
+                    intent.putExtra(Intent.EXTRA_STREAM, imageDrawUri);
+                    shareDialog.dismiss();
+                    startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
+                } else {
+                    FancyToast.makeText(CreateNoteActivity.this,
+                            getString(R.string.no_draw_in_note_share_error),
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.ERROR,
+                            false).show();
+                }
+            }
+        });
+        view.findViewById(R.id.text_only_text).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(android.content.Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_TITLE, alreadyAvailableNote.getTitle());
+                intent.putExtra(android.content.Intent.EXTRA_SUBJECT, alreadyAvailableNote.getSubTitle());
+                intent.putExtra(android.content.Intent.EXTRA_TEXT, alreadyAvailableNote.getTitle() + "\n" +
+                        alreadyAvailableNote.getSubTitle() + "\n" +
+                        alreadyAvailableNote.getNoteText());
+                shareDialog.dismiss();
+                startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
+            }
+        });
+        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                shareDialog.dismiss();
+            }
+        });
+        shareDialog.show();
+    }
+
+    private void showAddRefDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
+                .inflate(R.layout.layout_add_url,
+                        (ViewGroup) findViewById(R.id.layout_add_url_container));
+        builder.setView(view);
+        dialogRefUrl = builder.create();
+        if (dialogRefUrl.getWindow() != null) {
+            dialogRefUrl.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        }
+        final EditText inputRef = view.findViewById(R.id.input_url);
+        inputRef.requestFocus();
+
+        view.findViewById(R.id.text_add).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (inputRef.getText().toString().trim().isEmpty()) {
+                    if (preferencesSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(CreateNoteActivity.this,
+                            getString(R.string.error_toast_ref_empty),
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.WARNING,
+                            false).show();
+                } else if (!Patterns.WEB_URL.matcher(inputRef.getText().toString().trim()).matches()) {
+                    if (preferencesSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(CreateNoteActivity.this,
+                            getString(R.string.error_toast_not_valid_ref),
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.ERROR,
+                            false).show();
+                } else {
+                    textWebUrlRef.setText(inputRef.getText().toString().trim());
+                    layoutWebRef.setVisibility(View.VISIBLE);
+                    dialogRefUrl.dismiss();
+                }
+            }
+        });
+        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogRefUrl.dismiss();
+            }
+        });
+        dialogRefUrl.show();
+    }
+
+
+    private void showDeleteNoteDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this)
+                .inflate(R.layout.layout_delete_note,
+                        (ViewGroup) findViewById(R.id.layout_delete_note_container));
+        builder.setView(view);
+        dialogDeleteNote = builder.create();
+        if (dialogDeleteNote.getWindow() != null) {
+            dialogDeleteNote.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        }
+        view.findViewById(R.id.text_delete_note).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new DeleteNoteAsyncTask().execute();
+            }
+        });
+        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogDeleteNote.dismiss();
+            }
+        });
+        dialogDeleteNote.show();
+    }
+
+    private void setViewOrUpdateNote() {
+        if (alreadyAvailableNote != null) {
+            inputNoteTitle.setText(alreadyAvailableNote.getTitle());
+            inputNoteSubTitle.setText(alreadyAvailableNote.getSubTitle());
+            inputNoteText.setText(alreadyAvailableNote.getNoteText());
+            textDateTime.setText(alreadyAvailableNote.getDateTime());
+            editorTimes.putInt("timesEdited", prefTimesEdited.getInt("timesEdited", 0) + 1);
+            editorTimes.apply();
+
+            if (alreadyAvailableNote != null && alreadyAvailableNote.getNoteColor() != null)
+                setTextColor(alreadyAvailableNote.getNoteColor());
+
+            if (alreadyAvailableNote != null && alreadyAvailableNote.getFontStyle() != null)
+                setFont(alreadyAvailableNote.getFontStyle());
+
+            if (alreadyAvailableNote != null && alreadyAvailableNote.getTextSize() != null)
+                setSize(alreadyAvailableNote.getTextSize());
+
+            if (alreadyAvailableNote.getImagePath() != null && !alreadyAvailableNote.getImagePath().trim().isEmpty()) {
+                imageNote.setImageBitmap(BitmapFactory.decodeFile(alreadyAvailableNote.getImagePath()));
+                imageNote.setVisibility(View.VISIBLE);
+                noteBinding.imgRemoveImage.setVisibility(View.VISIBLE);
+                selectedImgPath = alreadyAvailableNote.getImagePath();
+            }
+
+            if (alreadyAvailableNote.getDrawPath() != null && !alreadyAvailableNote.getDrawPath().trim().isEmpty()) {
+                try {
+                    InputStream is = getContentResolver().openInputStream(Uri.parse(alreadyAvailableNote.getDrawPath()));
+                    imgDraw.setImageBitmap(BitmapFactory.decodeStream(is));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                imgDraw.setVisibility(View.VISIBLE);
+                findViewById(R.id.img_remove_draw).setVisibility(View.VISIBLE);
+                path = alreadyAvailableNote.getDrawPath();
+            }
+
+            if (alreadyAvailableNote.getWebLink() != null && !alreadyAvailableNote.getWebLink().trim().isEmpty()) {
+                textWebUrlRef.setText(alreadyAvailableNote.getWebLink());
+                layoutWebRef.setVisibility(View.VISIBLE);
+            }
+        } else if (alreadyAvailableNoteFolder != null) {
+            inputNoteTitle.setText(alreadyAvailableNoteFolder.getTitle());
+            inputNoteSubTitle.setText(alreadyAvailableNoteFolder.getSubTitle());
+            inputNoteText.setText(alreadyAvailableNoteFolder.getNoteText());
+            textDateTime.setText(alreadyAvailableNoteFolder.getDateTime());
+            editorTimes.putInt("timesEdited", prefTimesEdited.getInt("timesEdited", 0) + 1);
+            editorTimes.apply();
+
+            if (alreadyAvailableNoteFolder != null && alreadyAvailableNoteFolder.getNoteColor() != null)
+                setTextColor(alreadyAvailableNoteFolder.getNoteColor());
+
+            if (alreadyAvailableNoteFolder != null && alreadyAvailableNoteFolder.getFontStyle() != null)
+                setFont(alreadyAvailableNoteFolder.getFontStyle());
+
+            if (alreadyAvailableNoteFolder != null && alreadyAvailableNoteFolder.getTextSize() != null)
+                setSize(alreadyAvailableNoteFolder.getTextSize());
+
+            if (alreadyAvailableNoteFolder.getImagePath() != null && !alreadyAvailableNoteFolder.getImagePath().trim().isEmpty()) {
+                imageNote.setImageBitmap(BitmapFactory.decodeFile(alreadyAvailableNoteFolder.getImagePath()));
+                imageNote.setVisibility(View.VISIBLE);
+                noteBinding.imgRemoveImage.setVisibility(View.VISIBLE);
+                selectedImgPath = alreadyAvailableNoteFolder.getImagePath();
+            }
+
+            if (alreadyAvailableNoteFolder.getDrawPath() != null && !alreadyAvailableNoteFolder.getDrawPath().trim().isEmpty()) {
+                try {
+                    InputStream is = getContentResolver().openInputStream(Uri.parse(alreadyAvailableNoteFolder.getDrawPath()));
+                    imgDraw.setImageBitmap(BitmapFactory.decodeStream(is));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                imgDraw.setVisibility(View.VISIBLE);
+                findViewById(R.id.img_remove_draw).setVisibility(View.VISIBLE);
+                path = alreadyAvailableNoteFolder.getDrawPath();
+            }
+
+            if (alreadyAvailableNoteFolder.getWebLink() != null && !alreadyAvailableNoteFolder.getWebLink().trim().isEmpty()) {
+                textWebUrlRef.setText(alreadyAvailableNoteFolder.getWebLink());
+                layoutWebRef.setVisibility(View.VISIBLE);
+            }
         }
     }
 
     private void saveNote() {
         if (inputNoteTitle.getText().toString().trim().isEmpty()) {
-            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(this,
+            if (preferencesSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(CreateNoteActivity.this,
                     getString(R.string.toast_error_title_empty),
-                    Toast.LENGTH_SHORT).show();
+                    FancyToast.LENGTH_LONG,
+                    FancyToast.WARNING,
+                    false).show();
             return;
         } else if (inputNoteSubTitle.getText().toString().trim().isEmpty()
                 && inputNoteText.getText().toString().trim().isEmpty()) {
-            if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(this,
+            if (preferencesSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(CreateNoteActivity.this,
                     getString(R.string.toast_error_empty_note),
-                    Toast.LENGTH_SHORT).show();
+                    FancyToast.LENGTH_LONG,
+                    FancyToast.WARNING,
+                    false).show();
             return;
         }
 
         final NoteInFolder noteInFolder = new NoteInFolder();
         final SimpleNote simpleNote = new SimpleNote();
+        final Statistic statistic = new Statistic();
 
         if (folder != null) {
             int folderID = folder.getId();
@@ -399,17 +899,27 @@ public class CreateNoteActivity extends AppCompatActivity {
             noteInFolder.setTextSize(textSize);
             noteInFolder.setNoteColor(textColor);
             noteInFolder.setChildId(folderID);
+            noteInFolder.setDelete(false);
 
             if (layoutWebRef.getVisibility() == View.VISIBLE) {
                 noteInFolder.setWebLink(textWebUrlRef.getText().toString());
             }
 
-            if (alreadyAvailableNoteInFolder != null) {
-                noteInFolder.setId(alreadyAvailableNoteInFolder.getId());
+            if (alreadyAvailableNoteFolder != null) {
+                noteInFolder.setId(alreadyAvailableNoteFolder.getId());
                 noteInFolder.setDateTimeEdit(new SimpleDateFormat("EEEE, dd, MMMM yyyy HH:mm a", Locale.getDefault())
+                        .format(new Date()));
+                statistic.setDateText(new SimpleDateFormat("yyyy dd HH:mm a", Locale.getDefault())
                         .format(new Date()));
             }
 
+            statistic.setDateText(new SimpleDateFormat("yyyy dd HH:mm a", Locale.getDefault())
+                    .format(new Date()));
+
+            statistic.setTypeText(getString(R.string.note_in_folder_label));
+            statistic.setItemSubText(noteInFolder.getSubTitle());
+            statistic.setItemText(noteInFolder.getNoteText());
+            statistic.setActionText(getString(R.string.added_label));
         } else {
             simpleNote.setTitle(inputNoteTitle.getText().toString());
             simpleNote.setSubTitle(inputNoteSubTitle.getText().toString());
@@ -421,16 +931,26 @@ public class CreateNoteActivity extends AppCompatActivity {
             simpleNote.setFontStyle(fontStyle);
             simpleNote.setTextSize(textSize);
             simpleNote.setNoteColor(textColor);
+            simpleNote.setDelete(false);
 
             if (layoutWebRef.getVisibility() == View.VISIBLE) {
                 simpleNote.setWebLink(textWebUrlRef.getText().toString());
             }
 
-            if (alreadyAvailableNoteInFolder != null) {
-                simpleNote.setId(alreadyAvailableNoteInFolder.getId());
+            if (alreadyAvailableNote != null) {
+                simpleNote.setId(alreadyAvailableNote.getId());
                 simpleNote.setDateTimeEdit(new SimpleDateFormat("EEEE, dd, MMMM yyyy HH:mm a", Locale.getDefault())
                         .format(new Date()));
             }
+
+            SimpleDateFormat sdf = new SimpleDateFormat("dd MM yyyy");
+            String date = sdf.format(Calendar.getInstance().getTime());
+            statistic.setDateText(date);
+
+            statistic.setTypeText(getString(R.string.note_label));
+            statistic.setItemSubText(simpleNote.getSubTitle());
+            statistic.setItemText(simpleNote.getTitle());
+            statistic.setActionText(getString(R.string.added_label));
         }
 
         @SuppressLint("StaticFieldLeak")
@@ -439,8 +959,12 @@ public class CreateNoteActivity extends AppCompatActivity {
             protected Void doInBackground(Void... voids) {
                 if (folder != null) {
                     NoteInFolderDatabase.getNoteDatabase(getApplicationContext()).getNoteDAO().insertNote(noteInFolder);
+                    StatisticDatabase.getStatisticDatabase(getApplicationContext()).getStatisticDAO()
+                            .insertStatistic(statistic);
                 } else {
                     NoteDatabase.getNoteDatabase(getApplicationContext()).getNoteDAO().insertNote(simpleNote);
+                    StatisticDatabase.getStatisticDatabase(getApplicationContext()).getStatisticDAO()
+                            .insertStatistic(statistic);
                 }
                 return null;
             }
@@ -449,12 +973,12 @@ public class CreateNoteActivity extends AppCompatActivity {
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 hideKeyboard(CreateNoteActivity.this);
-                Intent intent = new Intent(CreateNoteActivity.this, BaseActivity.class);
-                startActivityForResult(intent, ADD_NOTE_CODE);
-                NotesFragment notesFragment = new NotesFragment();
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.replaced_container, notesFragment)
-                        .commit();
+                Intent intent = new Intent();
+                if (folder != null) {
+                    intent.putExtra("folder", folder);
+                    intent.putExtra("note", alreadyAvailableNoteFolder);
+                    intent.putExtra("isViewOrUpdate", true);
+                }
                 setResult(RESULT_OK, intent);
                 finish();
             }
@@ -462,36 +986,39 @@ public class CreateNoteActivity extends AppCompatActivity {
         new SaveNoteAsyncTask().execute();
     }
 
-    public static void hideKeyboard(Activity activity) {
-        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
-        View view = activity.getCurrentFocus();
-        if (view == null) view = new View(activity);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
-
+    @SuppressLint("SetTextI18n")
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                Uri resultUri = result.getUri();
+                InputStream is = null;
+                try {
+                    is = getContentResolver().openInputStream(resultUri);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                Bitmap bitmap = BitmapFactory.decodeStream(is);
+                imageNote.setImageBitmap(bitmap);
+                imageNote.setVisibility(View.VISIBLE);
+                findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
+                selectedImgPath = getPathFromUri(resultUri);
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                Exception error = result.getError();
+            }
+        }
         if (requestCode == CODE_SELECT_IMG && resultCode == RESULT_OK) {
             if (data != null) {
                 Uri selectedImgUri = data.getData();
                 if (selectedImgUri != null) {
-                    try {
-                        InputStream is = getContentResolver().openInputStream(selectedImgUri);
-                        Bitmap bitmap = BitmapFactory.decodeStream(is);
-                        imageNote.setImageBitmap(bitmap);
-                        imageNote.setVisibility(View.VISIBLE);
-                        findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
-                        selectedImgPath = getPathFromUri(selectedImgUri);
-                    } catch (Exception e) {
-                        if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                                CreateNoteActivity.this, getString(R.string.error_add_img_toast),
-                                Toast.LENGTH_SHORT).show();
-                    }
+                    CropImage.activity(selectedImgUri)
+                            .start(this);
                 }
             }
         } else if (requestCode == UPDATE_NOTE_CODE && resultCode == RESULT_OK) {
-            alreadyAvailableNoteInFolder = (SimpleNote) getIntent().getSerializableExtra("note");
+            alreadyAvailableNote = (SimpleNote) getIntent().getSerializableExtra("note");
             setViewOrUpdateNote();
         } else if (requestCode == REQUEST_CODE_SPEECH && resultCode == RESULT_OK) {
             ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
@@ -501,24 +1028,6 @@ public class CreateNoteActivity extends AppCompatActivity {
                 builder.append(finalItem);
             }
             inputNoteText.setText(inputNoteText.getText() + " " + builder.toString());
-        } else if (requestCode == CODE_SELECT_IMG && resultCode == RESULT_OK) {
-            if (data != null) {
-                Uri selectedImgUri = data.getData();
-                if (selectedImgUri != null) {
-                    try {
-                        InputStream is = getContentResolver().openInputStream(selectedImgUri);
-                        Bitmap bitmap = BitmapFactory.decodeStream(is);
-                        imageNote.setImageBitmap(bitmap);
-                        imageNote.setVisibility(View.VISIBLE);
-                        findViewById(R.id.img_remove_image).setVisibility(View.VISIBLE);
-                        selectedImgPath = getPathFromUri(selectedImgUri);
-                    } catch (Exception e) {
-                        if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                                CreateNoteActivity.this, getString(R.string.error_add_img_toast),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
         }
     }
 
@@ -729,9 +1238,40 @@ public class CreateNoteActivity extends AppCompatActivity {
             }
         });
 
-        if (alreadyAvailableNoteInFolder != null && alreadyAvailableNoteInFolder.getColor() != null && !alreadyAvailableNoteInFolder.getColor()
+        if (alreadyAvailableNote != null && alreadyAvailableNote.getColor() != null && !alreadyAvailableNote.getColor()
                 .trim().isEmpty()) {
-            switch (alreadyAvailableNoteInFolder.getColor()) {
+            switch (alreadyAvailableNote.getColor()) {
+                case "#FDBE3B":
+                    layoutMisc.findViewById(R.id.view_color_2).performClick();
+                    break;
+                case "#FF4842":
+                    layoutMisc.findViewById(R.id.view_color_3).performClick();
+                    break;
+                case "#3A52FC":
+                    layoutMisc.findViewById(R.id.view_color_4).performClick();
+                    break;
+                case "#000000":
+                    layoutMisc.findViewById(R.id.view_color_5).performClick();
+                    break;
+                case "#00FF00":
+                    layoutMisc.findViewById(R.id.view_color_6).performClick();
+                    break;
+                case "#551A8B":
+                    layoutMisc.findViewById(R.id.view_color_7).performClick();
+                    break;
+                case "#006400":
+                    layoutMisc.findViewById(R.id.view_color_8).performClick();
+                    break;
+                case "#00FFFF":
+                    layoutMisc.findViewById(R.id.view_color_9).performClick();
+                    break;
+                case "#FFA500":
+                    layoutMisc.findViewById(R.id.view_color_10).performClick();
+                    break;
+            }
+        } else if (alreadyAvailableNoteFolder != null && alreadyAvailableNoteFolder.getColor() != null && !alreadyAvailableNoteFolder.getColor()
+                .trim().isEmpty()) {
+            switch (alreadyAvailableNoteFolder.getColor()) {
                 case "#FDBE3B":
                     layoutMisc.findViewById(R.id.view_color_2).performClick();
                     break;
@@ -807,8 +1347,7 @@ public class CreateNoteActivity extends AppCompatActivity {
             }
         });
 
-
-        if (alreadyAvailableNoteInFolder != null) {
+        if (alreadyAvailableNote != null || alreadyAvailableNoteFolder != null) {
             layoutMisc.findViewById(R.id.layout_add_reminder).setVisibility(View.VISIBLE);
             layoutMisc.findViewById(R.id.layout_add_reminder).setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -819,7 +1358,7 @@ public class CreateNoteActivity extends AppCompatActivity {
             });
         }
 
-        if (alreadyAvailableNoteInFolder != null) {
+        if (alreadyAvailableNote != null || alreadyAvailableNoteFolder != null) {
             layoutMisc.findViewById(R.id.layout_delete_note).setVisibility(View.VISIBLE);
             layoutMisc.findViewById(R.id.layout_delete_note).setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -840,93 +1379,6 @@ public class CreateNoteActivity extends AppCompatActivity {
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.add_voice_speak_label));
         startActivityForResult(intent, REQUEST_CODE_SPEECH);
-    }
-
-    private void showAddDrawDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        final View view = LayoutInflater.from(this)
-                .inflate(R.layout.content_draw,
-                        (ViewGroup) findViewById(R.id.content_draw_container));
-        builder.setView(view);
-        dialogAddDraw = builder.create();
-        if (dialogAddDraw.getWindow() != null) {
-            dialogAddDraw.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        }
-        final ImageView drawBtn, erase, clearAllCanvasBtn, sizeSelectBtn;
-        TextView save;
-        paintView = view.findViewById(R.id.drawing);
-        drawBtn = view.findViewById(R.id.brush_btn);
-        sizeSelectBtn = view.findViewById(R.id.size_select_btn);
-        erase = view.findViewById(R.id.erase_btn);
-        save = view.findViewById(R.id.save_btn);
-        clearAllCanvasBtn = view.findViewById(R.id.clear_all_canvas_btn);
-        LinearLayout paintLayout = view.findViewById(R.id.paint_colors);
-        currPaint = (ImageView) paintLayout.getChildAt(0);
-        currPaint.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (v != null) paintClicked(v);
-            }
-        });
-        drawBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                paintView.setUpDrawing();
-            }
-        });
-        erase.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                paintView.setErase(true);
-                paintView.setBrushSize(paintView.getBrushSize());
-            }
-        });
-        clearAllCanvasBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                paintView.startNew();
-            }
-        });
-        sizeSelectBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showPopupMenu(v);
-            }
-        });
-        save.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                paintView.setDrawingCacheEnabled(true);
-                String imgSaved = MediaStore.Images.Media.insertImage(
-                        getContentResolver(), paintView.getDrawingCache(),
-                        UUID.randomUUID().toString() + ".png",
-                        "drawing"
-                );
-                if (imgSaved != null) {
-                    if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            CreateNoteActivity.this, R.string.saved,
-                            Toast.LENGTH_SHORT).show();
-                    if (alreadyAvailableNoteInFolder != null) {
-                        alreadyAvailableNoteInFolder.setDrawPath(imgSaved);
-                        path = alreadyAvailableNoteInFolder.getDrawPath();
-                    }
-                    path = imgSaved;
-                    imgDraw.setVisibility(View.VISIBLE);
-                    findViewById(R.id.img_remove_draw).setVisibility(View.VISIBLE);
-                    InputStream is = null;
-                    try {
-                        is = getContentResolver().openInputStream(Uri.parse(imgSaved));
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    Bitmap bitmap = BitmapFactory.decodeStream(is);
-                    imgDraw.setImageBitmap(bitmap);
-                    dialogAddDraw.dismiss();
-                }
-                paintView.destroyDrawingCache();
-            }
-        });
-        dialogAddDraw.show();
     }
 
     private void showPopupMenu(View v) {
@@ -1114,44 +1566,6 @@ public class CreateNoteActivity extends AppCompatActivity {
         }
     }
 
-
-    private void openRemindDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this)
-                .inflate(R.layout.dialog_picker,
-                        (ViewGroup) findViewById(R.id.layout_dialog_picker_container));
-        builder.setView(view);
-        dialogRemind = builder.create();
-        if (dialogRemind.getWindow() != null) {
-            dialogRemind.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        }
-        timePicker = view.findViewById(R.id.timePicker);
-        TextView btnOk = view.findViewById(R.id.btn_ok);
-        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialogRemind.dismiss();
-            }
-        });
-        btnOk.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.M)
-            @Override
-            public void onClick(View view) {
-                alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-                final Calendar c = Calendar.getInstance();
-                Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
-                intent.putExtra("nameOfNote", alreadyAvailableNoteInFolder.getTitle());
-                c.set(Calendar.HOUR_OF_DAY, timePicker.getHour());
-                c.set(Calendar.MINUTE, timePicker.getMinute());
-                pendingIntent = PendingIntent.getBroadcast(CreateNoteActivity.this, 0, intent,
-                        PendingIntent.FLAG_UPDATE_CURRENT);
-                alarmManager.set(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
-                dialogRemind.dismiss();
-            }
-        });
-        dialogRemind.show();
-    }
-
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent keyEvent) {
         if (keyCode == KeyEvent.KEYCODE_MENU) {
@@ -1188,179 +1602,17 @@ public class CreateNoteActivity extends AppCompatActivity {
                 String save = prefChoice.getString("choice_is_save", "");
                 if (save.equals("save")) {
                     saveNote();
-                    Intent intent = new Intent(CreateNoteActivity.this, NotesFragment.class);
+                    Intent intent = new Intent();
                     intent.putExtra("isFromBackKey", true);
-                    startActivity(intent);
                 } else {
-                    Intent intent = new Intent(CreateNoteActivity.this, NotesFragment.class);
+                    Intent intent = new Intent();
                     intent.putExtra("isFromBackKey", true);
-                    startActivity(intent);
                 }
+                finish();
             } else {
                 openQuitDialog();
             }
         }
-    }
-
-    private void openQuitDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this)
-                .inflate(R.layout.layout_exit_save_note,
-                        (ViewGroup) findViewById(R.id.layout_exit_save_note_container));
-        builder.setView(view);
-        dialogExitSave = builder.create();
-        if (dialogExitSave.getWindow() != null) {
-            dialogExitSave.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        }
-        final CheckBox saveChoice = view.findViewById(R.id.save_choice).findViewById(R.id.choice_save);
-        saveChoice.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                if (isChecked) {
-                    editorChoice.putBoolean("choice_is_check", true);
-                    editorChoice.apply();
-                }
-            }
-        });
-        view.findViewById(R.id.text_save_note).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                saveNote();
-                if (saveChoice.isChecked()) {
-                    editorChoice.putString("choice_is_save", "save");
-                    editorChoice.apply();
-                    Intent intent = new Intent(CreateNoteActivity.this, NotesFragment.class);
-                    intent.putExtra("isFromBackKey", true);
-                    startActivity(intent);
-                } else {
-                    editorChoice.putString("choice_is_save", "");
-                    editorChoice.apply();
-                    Intent intent = new Intent(CreateNoteActivity.this, NotesFragment.class);
-                    intent.putExtra("isFromBackKey", true);
-                    startActivity(intent);
-                }
-            }
-        });
-        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialogExitSave.dismiss();
-                Intent intent = new Intent(CreateNoteActivity.this, NotesFragment.class);
-                intent.putExtra("isFromBackKey", true);
-                startActivity(intent);
-            }
-        });
-        dialogExitSave.show();
-    }
-
-    private void shareDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this)
-                .inflate(R.layout.layout_share_note,
-                        (ViewGroup) findViewById(R.id.layout_share_note_container));
-        builder.setView(view);
-        shareDialog = builder.create();
-        if (shareDialog.getWindow() != null) {
-            shareDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        }
-        view.findViewById(R.id.text_with_image).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (imageNote.getVisibility() == View.VISIBLE) {
-                    imageNote.buildDrawingCache();
-                    Intent intent = new Intent(android.content.Intent.ACTION_SEND);
-                    intent.setType("image/jpeg");
-                    intent.putExtra(Intent.EXTRA_TITLE, alreadyAvailableNoteInFolder.getTitle());
-                    intent.putExtra(android.content.Intent.EXTRA_SUBJECT, alreadyAvailableNoteInFolder.getSubTitle());
-                    intent.putExtra(android.content.Intent.EXTRA_TEXT, alreadyAvailableNoteInFolder.getTitle() + "\n" +
-                            alreadyAvailableNoteInFolder.getSubTitle() + "\n" +
-                            alreadyAvailableNoteInFolder.getNoteText());
-                    Bitmap bitmap = ((BitmapDrawable) imageNote.getDrawable()).getBitmap();
-                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-                    String path = MediaStore.Images.Media.insertImage(getContentResolver(),
-                            bitmap, "image", null);
-                    Uri imageDrawUri = Uri.parse(path);
-                    intent.putExtra(Intent.EXTRA_STREAM, imageDrawUri);
-                    shareDialog.dismiss();
-                    startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
-                } else {
-                    Toast.makeText(CreateNoteActivity.this, getString(R.string.no_img_in_note_share_error), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        view.findViewById(R.id.text_with_draw).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (imgDraw.getVisibility() == View.VISIBLE) {
-                    imgDraw.buildDrawingCache();
-                    Intent intent = new Intent(android.content.Intent.ACTION_SEND);
-                    intent.setType("image/jpeg");
-                    intent.putExtra(Intent.EXTRA_TITLE, alreadyAvailableNoteInFolder.getTitle());
-                    intent.putExtra(android.content.Intent.EXTRA_SUBJECT, alreadyAvailableNoteInFolder.getSubTitle());
-                    intent.putExtra(android.content.Intent.EXTRA_TEXT, alreadyAvailableNoteInFolder.getTitle() + "\n" +
-                            alreadyAvailableNoteInFolder.getSubTitle() + "\n" +
-                            alreadyAvailableNoteInFolder.getNoteText());
-                    Bitmap drawBitmap = ((BitmapDrawable) imgDraw.getDrawable()).getBitmap();
-                    ByteArrayOutputStream bytesDraw = new ByteArrayOutputStream();
-                    drawBitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytesDraw);
-                    String drawPath = MediaStore.Images.Media.insertImage(getContentResolver(),
-                            drawBitmap, "image_draw", null);
-                    Uri imageDrawUri = Uri.parse(drawPath);
-                    intent.putExtra(Intent.EXTRA_STREAM, imageDrawUri);
-                    shareDialog.dismiss();
-                    startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
-                } else {
-                    Toast.makeText(CreateNoteActivity.this, getString(R.string.no_draw_in_note_share_error), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        view.findViewById(R.id.text_only_text).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(android.content.Intent.ACTION_SEND);
-                intent.setType("text/plain");
-                intent.putExtra(Intent.EXTRA_TITLE, alreadyAvailableNoteInFolder.getTitle());
-                intent.putExtra(android.content.Intent.EXTRA_SUBJECT, alreadyAvailableNoteInFolder.getSubTitle());
-                intent.putExtra(android.content.Intent.EXTRA_TEXT, alreadyAvailableNoteInFolder.getTitle() + "\n" +
-                        alreadyAvailableNoteInFolder.getSubTitle() + "\n" +
-                        alreadyAvailableNoteInFolder.getNoteText());
-                shareDialog.dismiss();
-                startActivity(Intent.createChooser(intent, getString(R.string.share_label)));
-            }
-        });
-        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                shareDialog.dismiss();
-            }
-        });
-        shareDialog.show();
-    }
-
-    private void showDeleteNoteDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this)
-                .inflate(R.layout.layout_delete_note,
-                        (ViewGroup) findViewById(R.id.layout_delete_note_container));
-        builder.setView(view);
-        dialogDeleteNote = builder.create();
-        if (dialogDeleteNote.getWindow() != null) {
-            dialogDeleteNote.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        }
-        view.findViewById(R.id.text_delete_note).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new DeleteNoteAsyncTask().execute();
-            }
-        });
-        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialogDeleteNote.dismiss();
-            }
-        });
-        dialogDeleteNote.show();
     }
 
     private void setSubTitleIndicator() {
@@ -1397,60 +1649,24 @@ public class CreateNoteActivity extends AppCompatActivity {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 selectImg();
             } else {
-                if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                        CreateNoteActivity.this, getString(R.string.error_toast_perm_denied),
-                        Toast.LENGTH_SHORT).show();
+                if (preferencesSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(CreateNoteActivity.this,
+                        getString(R.string.error_toast_perm_denied),
+                        FancyToast.LENGTH_LONG,
+                        FancyToast.WARNING,
+                        false).show();
             }
         }
         if (requestCode == PERMISSION_RECORD_CODE && grantResults.length > 0) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 enterVoice();
             } else {
-                if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                        CreateNoteActivity.this, getString(R.string.toast_error_record_denied),
-                        Toast.LENGTH_SHORT).show();
+                if (preferencesSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(CreateNoteActivity.this,
+                        getString(R.string.toast_error_record_denied),
+                        FancyToast.LENGTH_LONG,
+                        FancyToast.WARNING,
+                        false).show();
             }
         }
-    }
-
-    private void showAddRefDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this)
-                .inflate(R.layout.layout_add_url,
-                        (ViewGroup) findViewById(R.id.layout_add_url_container));
-        builder.setView(view);
-        dialogRefUrl = builder.create();
-        if (dialogRefUrl.getWindow() != null) {
-            dialogRefUrl.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        }
-        final EditText inputRef = view.findViewById(R.id.input_url);
-        inputRef.requestFocus();
-
-        view.findViewById(R.id.text_add).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (inputRef.getText().toString().trim().isEmpty()) {
-                    if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            CreateNoteActivity.this, getString(R.string.error_toast_ref_empty),
-                            Toast.LENGTH_SHORT).show();
-                } else if (!Patterns.WEB_URL.matcher(inputRef.getText().toString().trim()).matches()) {
-                    if (preferencesSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            CreateNoteActivity.this, getString(R.string.error_toast_not_valid_ref),
-                            Toast.LENGTH_SHORT).show();
-                } else {
-                    textWebUrlRef.setText(inputRef.getText().toString().trim());
-                    layoutWebRef.setVisibility(View.VISIBLE);
-                    dialogRefUrl.dismiss();
-                }
-            }
-        });
-        view.findViewById(R.id.text_cancel).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialogRefUrl.dismiss();
-            }
-        });
-        dialogRefUrl.show();
     }
 
     public void paintClicked(View view) {
@@ -1460,33 +1676,91 @@ public class CreateNoteActivity extends AppCompatActivity {
         currPaint = (ImageView) view;
     }
 
-    @SuppressLint("StaticFieldLeak")
-    class DeleteNoteAsyncTask extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... voids) {
-            NoteDatabase.getNoteDatabase(getApplicationContext()).getNoteDAO().deleteNote(alreadyAvailableNoteInFolder);
-            PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(RoomWorker.class,
-                    23,
-                    TimeUnit.HOURS,
-                    23,
-                    TimeUnit.HOURS)
-                    .build();
-            WorkManager.getInstance().enqueue(workRequest);
-            return null;
-        }
+@SuppressLint("StaticFieldLeak")
+class DeleteNoteAsyncTask extends AsyncTask<Void, Void, Void> {
+    @Override
+    protected Void doInBackground(Void... voids) {
+        TrashNote trashNote = new TrashNote();
+        Statistic statistic = new Statistic();
+        if (alreadyAvailableNoteFolder != null) {
+            trashNote.setColor(alreadyAvailableNoteFolder.getColor());
+            trashNote.setDateTime(alreadyAvailableNoteFolder.getDateTime());
+            trashNote.setDateTimeRemind(alreadyAvailableNoteFolder.getDateTimeRemind());
+            trashNote.setDateTimeEdit(alreadyAvailableNoteFolder.getDateTimeEdit());
+            trashNote.setDrawPath(alreadyAvailableNoteFolder.getDrawPath());
+            trashNote.setFontStyle(alreadyAvailableNoteFolder.getFontStyle());
+            trashNote.setId(alreadyAvailableNoteFolder.getId());
+            trashNote.setImagePath(alreadyAvailableNoteFolder.getImagePath());
+            trashNote.setNoteColor(alreadyAvailableNoteFolder.getNoteColor());
+            trashNote.setNoteText(alreadyAvailableNoteFolder.getNoteText());
+            trashNote.setSubTitle(alreadyAvailableNoteFolder.getSubTitle());
+            trashNote.setTextSize(alreadyAvailableNoteFolder.getTextSize());
+            trashNote.setWebLink(alreadyAvailableNoteFolder.getWebLink());
+            trashNote.setTitle(alreadyAvailableNoteFolder.getTitle());
 
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            Intent intent = new Intent(CreateNoteActivity.this, BaseActivity.class);
-            intent.putExtra("isNoteDeleted", true);
-            intent.putExtra("noteTitle", alreadyAvailableNoteInFolder.getTitle());
-            intent.putExtra("noteSubtitle", alreadyAvailableNoteInFolder.getSubTitle());
-            intent.putExtra("noteText", alreadyAvailableNoteInFolder.getNoteText());
-            hideKeyboard(CreateNoteActivity.this);
-            startActivity(intent);
-            setResult(RESULT_OK, intent);
-            finish();
+            statistic.setItemText(alreadyAvailableNoteFolder.getTitle());
+            statistic.setItemSubText(alreadyAvailableNoteFolder.getSubTitle());
+            statistic.setTypeText(getString(R.string.note_in_folder_label));
+            statistic.setActionText(getString(R.string.deleted_action));
+            SimpleDateFormat sdf = new SimpleDateFormat("dd MM yyyy");
+            String date = sdf.format(Calendar.getInstance().getTime());
+            statistic.setDateText(date);
+            TrashDatabase.getNoteDatabase(getApplicationContext()).getTrashDAO()
+                    .insertTrashNote(trashNote);
+            NoteInFolderDatabase.getNoteDatabase(getApplicationContext()).getNoteDAO()
+                    .deleteNote(alreadyAvailableNoteFolder);
+            StatisticDatabase.getStatisticDatabase(getApplicationContext()).getStatisticDAO()
+                    .insertStatistic(statistic);
+        } else {
+            trashNote.setColor(alreadyAvailableNote.getColor());
+            trashNote.setDateTime(alreadyAvailableNote.getDateTime());
+            trashNote.setDateTimeRemind(alreadyAvailableNote.getDateTimeRemind());
+            trashNote.setDateTimeEdit(alreadyAvailableNote.getDateTimeEdit());
+            trashNote.setDrawPath(alreadyAvailableNote.getDrawPath());
+            trashNote.setFontStyle(alreadyAvailableNote.getFontStyle());
+            trashNote.setId(alreadyAvailableNote.getId());
+            trashNote.setImagePath(alreadyAvailableNote.getImagePath());
+            trashNote.setNoteColor(alreadyAvailableNote.getNoteColor());
+            trashNote.setNoteText(alreadyAvailableNote.getNoteText());
+            trashNote.setSubTitle(alreadyAvailableNote.getSubTitle());
+            trashNote.setTextSize(alreadyAvailableNote.getTextSize());
+            trashNote.setWebLink(alreadyAvailableNote.getWebLink());
+            trashNote.setTitle(alreadyAvailableNote.getTitle());
+
+            statistic.setItemText(alreadyAvailableNote.getTitle());
+            statistic.setItemSubText(alreadyAvailableNote.getSubTitle());
+            statistic.setTypeText(getString(R.string.note_label));
+            statistic.setActionText(getString(R.string.deleted_action));
+            SimpleDateFormat sdf = new SimpleDateFormat("dd MM yyyy");
+            String date = sdf.format(Calendar.getInstance().getTime());
+            statistic.setDateText(date);
+            StatisticDatabase.getStatisticDatabase(getApplicationContext())
+                    .getStatisticDAO().insertStatistic(statistic);
+            TrashDatabase.getNoteDatabase(getApplicationContext()).getTrashDAO()
+                    .insertTrashNote(trashNote);
+            NoteDatabase.getNoteDatabase(getApplicationContext()).getNoteDAO().deleteNote(alreadyAvailableNote);
         }
+        return null;
     }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        super.onPostExecute(aVoid);
+        Intent intent = new Intent(CreateNoteActivity.this, BaseActivity.class);
+        intent.putExtra("isNoteDeleted", true);
+        if (alreadyAvailableNoteFolder != null) {
+            intent.putExtra("noteTitle", alreadyAvailableNoteFolder.getTitle());
+            intent.putExtra("noteSubtitle", alreadyAvailableNoteFolder.getSubTitle());
+            intent.putExtra("noteText", alreadyAvailableNoteFolder.getNoteText());
+        } else {
+            intent.putExtra("noteTitle", alreadyAvailableNote.getTitle());
+            intent.putExtra("noteSubtitle", alreadyAvailableNote.getSubTitle());
+            intent.putExtra("noteText", alreadyAvailableNote.getNoteText());
+        }
+        hideKeyboard(CreateNoteActivity.this);
+        startActivity(intent);
+        setResult(RESULT_OK, intent);
+        finish();
+    }
+}
 }

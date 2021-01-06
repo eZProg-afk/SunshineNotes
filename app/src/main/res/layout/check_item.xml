@@ -4,36 +4,34 @@
     android:id="@+id/layout_check"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="@dimen/_12sdp"
-    android:layout_marginLeft="@dimen/_12sdp"
-    android:layout_marginTop="@dimen/_12sdp"
-    android:layout_marginEnd="@dimen/_12sdp"
     android:padding="@dimen/_8sdp"
-    android:background="@drawable/background_note"
+    android:elevation="@dimen/_10sdp"
+    android:layout_marginTop="@dimen/_8sdp"
+    android:background="@drawable/background_check_item"
     android:orientation="vertical">
 
     <com.makeramen.roundedimageview.RoundedImageView
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/check_date_time"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_width="@dimen/_15sdp"
         android:layout_height="@dimen/_15sdp"
         android:adjustViewBounds="true"
-        android:src="@drawable/check"
+        android:src="@drawable/ic_task"
         android:layout_marginStart="@dimen/_10sdp"
-        android:layout_marginTop="@dimen/_10sdp"
         app:riv_corner_radius_top_left="@dimen/_10sdp"
         app:riv_corner_radius_top_right="@dimen/_10sdp"
         android:id="@+id/check_img_label"
         android:layout_marginLeft="@dimen/_10sdp" />
 
     <TextView
-        app:layout_constraintTop_toTopOf="@id/check_img_label"
+        app:layout_constraintTop_toBottomOf="@id/check_date_time"
         app:layout_constraintStart_toEndOf="@id/check_img_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/_10sdp"
         android:text="@string/task_label"
-        android:fontFamily="@font/ubuntu_regular"
+        android:textColor="@color/white"
+        android:fontFamily="@font/ubuntu_bold"
         android:textSize="16sp"
         android:layout_gravity="center"
         android:layout_marginLeft="@dimen/_10sdp" />
@@ -45,40 +43,43 @@
         android:layout_marginStart="@dimen/_8sdp"
         android:layout_marginTop="@dimen/_5sdp"
         android:layout_marginEnd="@dimen/_8sdp"
-        android:fontFamily="@font/ubuntu_bold"
+        android:fontFamily="@font/ubuntu_medium"
         android:includeFontPadding="false"
-        android:textColor="@color/note_title"
+        android:textColor="@color/white"
         android:textSize="@dimen/_13ssp"
         app:layout_constraintEnd_toStartOf="@id/check_box"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/check_img_label" />
 
-    <CheckBox
+    <net.igenius.customcheckbox.CustomCheckBox
         android:id="@+id/check_box"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/_10sdp"
-        android:layout_marginLeft="@dimen/_30sdp"
-        android:layout_marginTop="@dimen/_20sdp"
-        android:checked="false"
         app:layout_constraintStart_toEndOf="@id/check_title"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="10dp"
+        android:layout_marginTop="@dimen/_25sdp"
+        android:layout_marginLeft="35dp"
+        android:layout_marginRight="@dimen/_16sdp"
+        app:small_tick="true"
+        android:layout_marginStart="35dp"
+        android:layout_marginEnd="@dimen/_16sdp" />
 
     <TextView
         android:id="@+id/check_date_time"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_gravity="center_horizontal"
         android:layout_marginStart="@dimen/_8sdp"
         android:layout_marginEnd="@dimen/_8sdp"
-        android:layout_marginBottom="@dimen/_8sdp"
         android:fontFamily="@font/ubuntu_regular"
         android:includeFontPadding="false"
         android:paddingBottom="@dimen/_10sdp"
-        android:textColor="@color/colorNoteSubTitleText"
-        android:textSize="@dimen/_7ssp"
+        android:textColor="@color/colorTextHint"
+        android:textSize="@dimen/_11ssp"
+        android:layout_marginTop="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/check_box" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

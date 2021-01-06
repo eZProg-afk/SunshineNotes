@@ -32,6 +32,7 @@ public class CheckListAdapter extends RecyclerView.Adapter<CheckListAdapter.Chec
     private final CheckListsListener listener;
     private Timer timer;
     private final List<CheckList> checkListsSource;
+    private boolean isDeleteModeEnabled = false;
 
     public CheckListAdapter(List<CheckList> checkLists, CheckListsListener listener) {
         this.checkLists = checkLists;
@@ -47,18 +48,27 @@ public class CheckListAdapter extends RecyclerView.Adapter<CheckListAdapter.Chec
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CheckListViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final CheckListViewHolder holder, final int position) {
         holder.setNote(checkLists.get(position));
         holder.layoutNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 listener.onCheckListClicked(checkLists.get(position), position);
+                if (isDeleteModeEnabled) {
+                    holder.selectForDelete.setVisibility(View.VISIBLE);
+                    holder.selectedForDeleteText.setVisibility(View.VISIBLE);
+                } else {
+                    holder.selectForDelete.setVisibility(View.GONE);
+                    holder.selectedForDeleteText.setVisibility(View.GONE);
+                }
             }
         });
         holder.layoutNote.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 listener.onLongCheckListClicked(checkLists.get(position), position);
+                holder.selectForDelete.setVisibility(View.VISIBLE);
+                holder.selectedForDeleteText.setVisibility(View.VISIBLE);
                 return true;
             }
         });
@@ -69,6 +79,14 @@ public class CheckListAdapter extends RecyclerView.Adapter<CheckListAdapter.Chec
         return checkLists.size();
     }
 
+    public void setOneClickDeleteMode() {
+        isDeleteModeEnabled = true;
+    }
+
+    public void disableOneClickDeleteMode() {
+        isDeleteModeEnabled = false;
+    }
+
     @Override
     public int getItemViewType(int position) {
         return position;
@@ -76,9 +94,9 @@ public class CheckListAdapter extends RecyclerView.Adapter<CheckListAdapter.Chec
 
     static class CheckListViewHolder extends RecyclerView.ViewHolder {
 
-        TextView textTitle, textDateTime;
-        ConstraintLayout layoutNote;
-        RoundedImageView imageNote;
+        TextView textTitle, textDateTime, selectedForDeleteText;
+        ConstraintLayout layoutNote, backDelete;
+        RoundedImageView imageNote, selectForDelete;
 
         public CheckListViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -86,6 +104,9 @@ public class CheckListAdapter extends RecyclerView.Adapter<CheckListAdapter.Chec
             textDateTime = itemView.findViewById(R.id.check_list_date_time);
             layoutNote = itemView.findViewById(R.id.layout_check_list);
             imageNote = itemView.findViewById(R.id.check_list_image);
+            selectForDelete = itemView.findViewById(R.id.image_select_delete);
+            selectedForDeleteText = itemView.findViewById(R.id.text_selected_delete);
+            backDelete = itemView.findViewById(R.id.back_delete);
         }
 
         void setNote(CheckList checkList) {

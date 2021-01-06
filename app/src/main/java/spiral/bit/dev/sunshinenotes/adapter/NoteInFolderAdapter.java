@@ -1,6 +1,7 @@
 package spiral.bit.dev.sunshinenotes.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -15,6 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.makeramen.roundedimageview.RoundedImageView;
@@ -38,6 +40,7 @@ public class NoteInFolderAdapter extends RecyclerView.Adapter<NoteInFolderAdapte
     private final NotesInFolderListener listener;
     private Timer timer;
     private final List<NoteInFolder> notesSource;
+    private boolean isDeleteModeEnabled = false;
 
     public NoteInFolderAdapter(List<NoteInFolder> noteInFolders, NotesInFolderListener listener) {
         this.noteInFolders = noteInFolders;
@@ -53,18 +56,27 @@ public class NoteInFolderAdapter extends RecyclerView.Adapter<NoteInFolderAdapte
     }
 
     @Override
-    public void onBindViewHolder(@NonNull NoteViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final NoteViewHolder holder, final int position) {
         holder.setNote(noteInFolders.get(position));
         holder.layoutNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 listener.onNoteClicked(noteInFolders.get(position), position);
+                if (isDeleteModeEnabled) {
+                    holder.selectForDelete.setVisibility(View.VISIBLE);
+                    holder.selectedForDeleteText.setVisibility(View.VISIBLE);
+                } else {
+                    holder.selectForDelete.setVisibility(View.GONE);
+                    holder.selectedForDeleteText.setVisibility(View.GONE);
+                }
             }
         });
         holder.layoutNote.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 listener.onLongNoteClicked(noteInFolders.get(position), position);
+                holder.selectForDelete.setVisibility(View.VISIBLE);
+                holder.selectedForDeleteText.setVisibility(View.VISIBLE);
                 return true;
             }
         });
@@ -82,10 +94,11 @@ public class NoteInFolderAdapter extends RecyclerView.Adapter<NoteInFolderAdapte
 
     static class NoteViewHolder extends RecyclerView.ViewHolder {
 
-        TextView textTitle, textSubTitle, textDateTime;
+        TextView textTitle, textSubTitle, textDateTime, selectedForDeleteText;
         LinearLayout layoutNote;
+        ConstraintLayout backDelete;
         RoundedImageView imageNote;
-        RoundedImageView imageDraw;
+        RoundedImageView imageDraw, selectForDelete;
         private final Context context;
 
         public NoteViewHolder(@NonNull View itemView) {
@@ -97,6 +110,9 @@ public class NoteInFolderAdapter extends RecyclerView.Adapter<NoteInFolderAdapte
             layoutNote = itemView.findViewById(R.id.layout_note);
             imageNote = itemView.findViewById(R.id.image_note);
             imageDraw = itemView.findViewById(R.id.image_draw_note);
+            selectForDelete = itemView.findViewById(R.id.image_select_delete);
+            selectedForDeleteText = itemView.findViewById(R.id.text_selected_delete);
+            backDelete = itemView.findViewById(R.id.back_delete);
         }
 
         void setNote(NoteInFolder noteInFolder) {
@@ -116,7 +132,6 @@ public class NoteInFolderAdapter extends RecyclerView.Adapter<NoteInFolderAdapte
             } else {
                 gradientDrawable.setColor(Color.parseColor("#333333"));
             }
-
 
             if (type != null) {
                 switch (type) {
@@ -219,6 +234,14 @@ public class NoteInFolderAdapter extends RecyclerView.Adapter<NoteInFolderAdapte
         }
     }
 
+    public void setOneClickDeleteMode() {
+        isDeleteModeEnabled = true;
+    }
+
+    public void disableOneClickDeleteMode() {
+        isDeleteModeEnabled = false;
+    }
+
     public void searchNote(final String searchKeyWord) {
         timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -233,13 +256,15 @@ public class NoteInFolderAdapter extends RecyclerView.Adapter<NoteInFolderAdapte
                             if (noteInFolder.getTitle().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
                                     noteInFolder.getSubTitle().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
                                     noteInFolder.getNoteText().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
-                                    noteInFolder.getImgTag().toLowerCase().contains(searchKeyWord.toLowerCase())) {
+                                    noteInFolder.getImgTag().toLowerCase().contains(searchKeyWord.toLowerCase())|
+                            noteInFolder.getDateTime().toLowerCase().contains(searchKeyWord.toLowerCase())) {
                                 tempList.add(noteInFolder);
                             }
                         } else {
                             if (noteInFolder.getTitle().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
                                     noteInFolder.getSubTitle().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
-                                    noteInFolder.getNoteText().toLowerCase().contains(searchKeyWord.toLowerCase())) {
+                                    noteInFolder.getNoteText().toLowerCase().contains(searchKeyWord.toLowerCase()) ||
+                                    noteInFolder.getDateTime().toLowerCase().contains(searchKeyWord.toLowerCase())) {
                                 tempList.add(noteInFolder);
                             }
                         }

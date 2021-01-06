@@ -9,16 +9,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.Toast;
-
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
-
 import com.hanks.passcodeview.PasscodeView;
-
+import com.shashank.sony.fancytoastlib.FancyToast;
 import spiral.bit.dev.sunshinenotes.R;
-import spiral.bit.dev.sunshinenotes.fragments.NotesFragment;
+import spiral.bit.dev.sunshinenotes.activities.other.BaseActivity;
 
 public class PinCodeActivity extends AppCompatActivity {
 
@@ -29,7 +26,7 @@ public class PinCodeActivity extends AppCompatActivity {
     private SharedPreferences.Editor editor;
     private SharedPreferences.Editor editorPrefPass;
     private EditText inputSecretWord;
-    private SharedPreferences.Editor editorGraphicKey, editorPrefPin;
+    private SharedPreferences.Editor editorGraphicKey;
 
     @SuppressLint("CommitPrefEdits")
     @Override
@@ -37,16 +34,14 @@ public class PinCodeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pin_code);
 
-        SharedPreferences prefPassword = getSharedPreferences("password", 0);
+        SharedPreferences prefPassword = getSharedPreferences("pass", 0);
         preferenceSettings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         prefSecret = getSharedPreferences("secret", 0);
-        SharedPreferences prefPass = getSharedPreferences("password", 0);
         SharedPreferences graphicPref = getSharedPreferences("graphic", 0);
 
         editorGraphicKey = graphicPref.edit();
         editorPrefPass = prefPassword.edit();
         editor = prefSecret.edit();
-        SharedPreferences.Editor editPass = prefPass.edit();
     }
 
     private void openForgetDialog() {
@@ -66,9 +61,11 @@ public class PinCodeActivity extends AppCompatActivity {
                 public void onClick(View view) {
                     editor.putString("secretWord", inputSecretWord.getText().toString());
                     editor.apply();
-                    if (preferenceSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            PinCodeActivity.this, getString(R.string.secret_word_added_toast),
-                            Toast.LENGTH_SHORT).show();
+                    if (preferenceSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(PinCodeActivity.this,
+                            getString(R.string.secret_word_added_toast),
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.SUCCESS,
+                            false).show();
                     dialogForgetPinCode.dismiss();
                 }
             });
@@ -100,14 +97,16 @@ public class PinCodeActivity extends AppCompatActivity {
                     String trueSecretWord = prefSecret.getString("secretWord", "");
                     String enteredSecretWord = inputSecretWord.getText().toString();
                     if (enteredSecretWord.equals(trueSecretWord)) {
-                        Intent intent = new Intent(PinCodeActivity.this, NotesFragment.class);
+                        Intent intent = new Intent(PinCodeActivity.this, BaseActivity.class);
                         intent.putExtra("setForget", true);
                         startActivity(intent);
                     } else {
                         dialogRecreatePin.dismiss();
-                        if (preferenceSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                                PinCodeActivity.this, R.string.secret_word_isnt_right,
-                                Toast.LENGTH_SHORT).show();
+                        if (preferenceSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(PinCodeActivity.this,
+                                getString(R.string.secret_word_isnt_right),
+                                FancyToast.LENGTH_LONG,
+                                FancyToast.ERROR,
+                                false).show();
                     }
                 }
             });
@@ -142,9 +141,11 @@ public class PinCodeActivity extends AppCompatActivity {
         passCodeView.setListener(new PasscodeView.PasscodeViewListener() {
             @Override
             public void onFail() {
-                if (preferenceSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                        PinCodeActivity.this, R.string.pin_code_isnt_right,
-                        Toast.LENGTH_SHORT).show();
+                if (preferenceSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(PinCodeActivity.this,
+                        getString(R.string.pin_code_isnt_right),
+                        FancyToast.LENGTH_LONG,
+                        FancyToast.ERROR,
+                        false).show();
             }
 
             @Override
@@ -156,11 +157,13 @@ public class PinCodeActivity extends AppCompatActivity {
                 editorGraphicKey.apply();
                 editor.apply();
                 if ((set != null && set.equals("set")) || prefPass.getString("pin-code", "").isEmpty()) {
-                    if (preferenceSettings.getBoolean("remove_toasts", false)) Toast.makeText(
-                            PinCodeActivity.this, R.string.pin_code_set,
-                            Toast.LENGTH_SHORT).show();
+                    if (preferenceSettings.getBoolean("remove_toasts", false)) FancyToast.makeText(PinCodeActivity.this,
+                            getString(R.string.pin_code_set),
+                            FancyToast.LENGTH_LONG,
+                            FancyToast.SUCCESS,
+                            false).show();
                 }
-                Intent intent = new Intent(getApplicationContext(), NotesFragment.class);
+                Intent intent = new Intent(getApplicationContext(), BaseActivity.class);
                 if (passCodeView.getPasscodeType() == PasscodeView.PasscodeViewType.TYPE_SET_PASSCODE) {
                     intent.putExtra("isFromSet", true);
                 }

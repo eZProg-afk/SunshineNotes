@@ -1,4 +1,4 @@
-package spiral.bit.dev.sunshinenotes.activities;
+package spiral.bit.dev.sunshinenotes.activities.other;
 
 import androidx.appcompat.app.AppCompatActivity;
 

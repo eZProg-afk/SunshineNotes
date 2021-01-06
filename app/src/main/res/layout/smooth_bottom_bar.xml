@@ -57,7 +57,17 @@
             android:layout_marginStart="@dimen/_15sdp"
             android:layout_marginLeft="@dimen/_15sdp"
             android:contentDescription="@string/cd_settings_icon"
-            android:src="@drawable/ic_remove_ads"
+            android:src="@drawable/ic_statistics"
+            app:tint="@color/colorIcons" />
+
+        <ImageView
+            android:id="@+id/trash_icon"
+            android:layout_width="@dimen/_23sdp"
+            android:layout_height="@dimen/_23sdp"
+            android:layout_marginStart="@dimen/_15sdp"
+            android:layout_marginLeft="@dimen/_15sdp"
+            android:contentDescription="@string/cd_settings_icon"
+            android:src="@drawable/ic_delete"
             app:tint="@color/colorIcons" />
 
     </LinearLayout>

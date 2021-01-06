@@ -55,7 +55,7 @@ public class SimpleNote implements Serializable {
     @ColumnInfo(name = "web_link")
     private String webLink;
 
-    private boolean isDelete;
+    private boolean isDelete = false;
 
     public boolean isDelete() {
         return isDelete;

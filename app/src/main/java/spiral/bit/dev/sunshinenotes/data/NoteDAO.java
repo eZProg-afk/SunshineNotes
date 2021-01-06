@@ -18,6 +18,9 @@ public interface NoteDAO {
     @Query("SELECT * FROM simple_notes_table ORDER BY note_id DESC")
     List<SimpleNote> getAllNotes();
 
+    @Delete
+    void deleteMultiplyNotes(List<SimpleNote> simpleNotes);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertNote(SimpleNote simpleNote);
 

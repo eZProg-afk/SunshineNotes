@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase;
 import spiral.bit.dev.sunshinenotes.models.Folder;
 import spiral.bit.dev.sunshinenotes.models.NoteInFolder;
 
-@Database(entities = {NoteInFolder.class, Folder.class}, version = 14, exportSchema = false)
+@Database(entities = {NoteInFolder.class, Folder.class}, version = 16, exportSchema = false)
 public abstract class NoteInFolderDatabase extends RoomDatabase {
 
     public abstract NoteInFolderDAO getNoteDAO();
